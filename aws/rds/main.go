@@ -1,7 +1,7 @@
 package rds
 
 import (
-	"github.com/debeando/skale/retry"
+	"github.com/debeando/go-common/retry"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"

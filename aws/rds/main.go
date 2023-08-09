@@ -9,16 +9,16 @@ import (
 )
 
 type Config struct {
-	Client     *rds.RDS // AWS rds connection.
-	Instance   string   // New instance (replica).
-	Class      string   // New instance class.
-	Region     string   // AWS region account.
-	Primary    string   // Source instance (primary).
-	Status     string   // New instance status.
-	Endpoint   string   // New instance endpoint.
-	Protection bool     // New instance is set to deletion protection.
-	Port       int64    // New instance port of endpoint.
-	Zone       string   // New instance Availability Zone.
+	Client     *rds.RDS `json:"-"`          // AWS rds connection.
+	Instance   string   `json:"instance"`   // New instance (replica).
+	Class      string   `json:"class"`      // New instance class.
+	Region     string   `json:"region"`     // AWS region account.
+	Primary    string   `json:"primary"`    // Source instance (primary).
+	Status     string   `json:"status"`     // New instance status.
+	Endpoint   string   `json:"endpoint"`   // New instance endpoint.
+	Protection bool     `json:"protection"` // New instance is set to deletion protection.
+	Port       int64    `json:"port"`       // New instance port of endpoint.
+	Zone       string   `json:"zone"`       // New instance Availability Zone.
 }
 
 func (c *Config) Init() (err error) {

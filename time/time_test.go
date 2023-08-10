@@ -29,19 +29,19 @@ func TestNowUTCf(t *testing.T) {
 
 func TestBetweenNow(t *testing.T) {
 	time.Now = func() mock.Time {
-		return mock.Date(0000, 01, 01, 13, 30, 00, 000000000, mock.UTC)
+		return mock.Date(2022, 01, 01, 13, 30, 00, 000000000, mock.UTC)
 	}
 
 	assert.True(t, time.BetweenNow(
-		mock.Date(0000, 01, 01, 13, 00, 00, 000000000, mock.UTC), // Before (Antes)
-		mock.Date(0000, 01, 01, 13, 59, 00, 000000000, mock.UTC), // After  (Después)
+		mock.Date(2020, 01, 01, 13, 00, 00, 000000000, mock.UTC), // Before (Antes)
+		mock.Date(2021, 01, 01, 13, 59, 00, 000000000, mock.UTC), // After  (Después)
 	))
 	assert.False(t, time.BetweenNow(
-		mock.Date(0000, 01, 01, 11, 00, 00, 000000000, mock.UTC), // Before (Antes)
-		mock.Date(0000, 01, 01, 11, 59, 00, 000000000, mock.UTC), // After  (Después)
+		mock.Date(2020, 01, 01, 11, 00, 00, 000000000, mock.UTC), // Before (Antes)
+		mock.Date(2021, 01, 01, 11, 59, 00, 000000000, mock.UTC), // After  (Después)
 	))
 	assert.False(t, time.BetweenNow(
-		mock.Date(0000, 01, 01, 20, 00, 00, 000000000, mock.UTC), // Before (Antes)
-		mock.Date(0000, 01, 01, 20, 59, 00, 000000000, mock.UTC), // After  (Después)
+		mock.Date(2020, 01, 01, 20, 00, 00, 000000000, mock.UTC), // Before (Antes)
+		mock.Date(2021, 01, 01, 20, 59, 00, 000000000, mock.UTC), // After  (Después)
 	))
 }

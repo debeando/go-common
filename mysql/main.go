@@ -8,14 +8,24 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+type Config struct {
+	Host     string `json:"host"`
+	Port     uint16 `json:"port"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Status   string `json:"status"`
+	Timeout  uint8  `json:"timeout"`
+}
+
 type singleton struct {
 	Connection *sql.DB
 	Name       string
+	DSN        string
 }
 
 var instance = make(map[string]*singleton)
 
-func GetInstance(name string) *singleton {
+func New(name string) *singleton {
 	if instance[name] == nil {
 		instance[name] = &singleton{}
 		instance[name].Name = name
@@ -23,9 +33,9 @@ func GetInstance(name string) *singleton {
 	return instance[name]
 }
 
-func (s *singleton) Connect(dsn string) error {
+func (s *singleton) Connect() error {
 	if s.Connection == nil {
-		conn, err := sql.Open("mysql", dsn)
+		conn, err := sql.Open("mysql", s.DSN)
 		if err != nil {
 			return err
 		}

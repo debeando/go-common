@@ -91,6 +91,14 @@ func (c *Config) IsAvailable() bool {
 	return len(c.Endpoint) > 0 && c.Status == "available"
 }
 
+func (c *Config) IsPrimary() bool {
+	return true
+}
+
+func (c *Config) IsReplica() bool {
+	return false
+}
+
 func (c *Config) IsNotAvailable() bool {
 	c.Describe()
 	return len(c.Endpoint) == 0 && len(c.Status) == 0

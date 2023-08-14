@@ -1,11 +1,11 @@
-package os
+package cli
 
 import (
 	"os"
 	"path/filepath"
 )
 
-func Args() []string {
+func GetArgs() []string {
 	return os.Args[1:]
 }
 

@@ -5,8 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"strings"
-
-	"github.com/debeando/go-common/os"
 )
 
 const (
@@ -41,7 +39,7 @@ func (c *CLI) Help() string {
 		version = fmt.Sprintf(" (%s)", c.Version)
 	}
 
-	help = fmt.Sprintf("%s%s\n", os.ExecutableName(), version)
+	help = fmt.Sprintf("%s%s\n", ExecutableName(), version)
 
 	if len(c.Description) > 0 {
 		help += fmt.Sprintf("  %s\n", c.Description)
@@ -49,7 +47,7 @@ func (c *CLI) Help() string {
 
 	if len(c.Usage) > 0 {
 		help += "\nUsage:\n"
-		help += fmt.Sprintf("  %s %s\n", os.ExecutableName(), c.Usage)
+		help += fmt.Sprintf("  %s %s\n", ExecutableName(), c.Usage)
 	}
 
 	if len((*c).Args) > 0 {
@@ -98,7 +96,7 @@ func (c *CLI) Parser() {
 	}
 
 	f.SetOutput(io.Discard)
-	f.Parse(os.Args())
+	f.Parse(GetArgs())
 
 	for index, arg := range c.Args {
 		(*c).Args[index].Value = f.Lookup(arg.Name).Value.String()

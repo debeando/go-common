@@ -92,11 +92,11 @@ func (c *Config) IsAvailable() bool {
 }
 
 func (c *Config) IsPrimary() bool {
-	return true
+	return c.IsAvailable() && len(c.Primary) == 0
 }
 
 func (c *Config) IsReplica() bool {
-	return false
+	return c.IsAvailable() && len(c.Primary) > 0
 }
 
 func (c *Config) IsNotAvailable() bool {

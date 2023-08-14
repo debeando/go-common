@@ -86,6 +86,11 @@ func (c *Config) Describe() {
 	}
 }
 
+func (c *Config) Exist() bool {
+	c.Describe()
+	return len(c.Endpoint) > 0 && len(c.Status) > 0
+}
+
 func (c *Config) IsAvailable() bool {
 	c.Describe()
 	return len(c.Endpoint) > 0 && c.Status == "available"

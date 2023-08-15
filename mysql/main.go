@@ -8,7 +8,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-type Config struct {
+type MySQL struct {
 	Host     string `json:"host"`
 	Port     uint16 `json:"port"`
 	Username string `json:"username"`
@@ -17,24 +17,24 @@ type Config struct {
 	Timeout  uint8  `json:"timeout"`
 }
 
-type singleton struct {
-	Connection *sql.DB
-	Name       string
-	DSN        string
+type Connection struct {
+	Instance *sql.DB
+	Name     string
+	DSN      string
 }
 
-var instance = make(map[string]*singleton)
+var instance = make(map[string]*Connection)
 
-func New(name string) *singleton {
+func Instance(name string) *Connection {
 	if instance[name] == nil {
-		instance[name] = &singleton{}
+		instance[name] = &Connection{}
 		instance[name].Name = name
 	}
 	return instance[name]
 }
 
-func (s *singleton) Connect() error {
-	if s.Connection == nil {
+func (s *Connection) Connect() error {
+	if s.Instance == nil {
 		conn, err := sql.Open("mysql", s.DSN)
 		if err != nil {
 			return err
@@ -44,18 +44,18 @@ func (s *singleton) Connect() error {
 			return err
 		}
 
-		s.Connection = conn
+		s.Instance = conn
 	}
 	return nil
 }
 
-func (s *singleton) Query(query string) (map[int]map[string]string, error) {
-	if err := s.Connection.Ping(); err != nil {
+func (s *Connection) Query(query string) (map[int]map[string]string, error) {
+	if err := s.Instance.Ping(); err != nil {
 		return nil, err
 	}
 
 	// Execute the query
-	rows, err := s.Connection.Query(query)
+	rows, err := s.Instance.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -95,9 +95,9 @@ func (s *singleton) Query(query string) (map[int]map[string]string, error) {
 	return dataset, nil
 }
 
-func (s *singleton) Close() {
-	if s.Connection != nil {
-		s.Connection.Close()
+func (s *Connection) Close() {
+	if s.Instance != nil {
+		s.Instance.Close()
 	}
 }
 

@@ -22,11 +22,11 @@ jobs:
     - name: Suspicious constructs
       run: go vet ./...
 
-    - name: Build
-      run: go build -v ./...
-
     - name: Test
       run: go test -v ./...
+
+    - name: Build
+      run: go build -v ./...
 
   release:
     name: Build and deploy new release

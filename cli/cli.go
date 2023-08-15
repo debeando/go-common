@@ -1,9 +1,9 @@
 package cli
 
 import (
-	"io"
 	"flag"
 	"fmt"
+	"io"
 	"strings"
 )
 
@@ -60,9 +60,9 @@ func (c *CLI) Help() string {
 				required = " (Required)"
 			}
 
-			name   := arg.Name
+			name := arg.Name
 			length := c.Args.NamesLength() - len(name)
-			name   += strings.Repeat(" ", length)
+			name += strings.Repeat(" ", length)
 
 			help += fmt.Sprintf("  --%s\t%s%s\n", name, arg.Description, required)
 		}

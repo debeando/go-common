@@ -1,10 +1,11 @@
-package cli
+package cli_test
 
 import (
 	"os"
 	"testing"
 
 	"github.com/debeando/go-common/cli"
+
 	"github.com/stretchr/testify/assert"
 )
 

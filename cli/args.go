@@ -7,7 +7,7 @@ type Arg struct {
 	Type        uint8
 	Default     any
 	Function    func()
-	Value			  string
+	Value       string
 }
 
 type Args []Arg
@@ -29,9 +29,9 @@ func (s *Args) unique(o Arg) bool {
 
 func (s *Args) NamesLength() (l int) {
 	for _, i := range *s {
-			if len(i.Name) > l {
-				l = len(i.Name)
-			}
+		if len(i.Name) > l {
+			l = len(i.Name)
+		}
 	}
 	return l
 }

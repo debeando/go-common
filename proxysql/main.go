@@ -12,6 +12,7 @@ const (
 	ONLINE              = "ONLINE"
 	OFFLINE_SOFT        = "OFFLINE_SOFT"
 	OFFLINE_HARD        = "OFFLINE_HARD"
+	SHUNNED             = "SHUNNED"
 )
 
 type ProxySQL struct {
@@ -119,3 +120,6 @@ func (p *ProxySQL) LoadServers() {
 func (p *ProxySQL) SaveServers() {
 	p.Connection.Query("SAVE MYSQL SERVERS TO DISK;")
 }
+
+// stats_mysql_connection_pool_reset
+// hostgroup, srv_host, srv_port, status, ConnUsed, ConnFree, ConnOK, ConnERR, MaxConnUsed, Queries, Queries_GTID_sync, Bytes_data_sent, Bytes_data_recv, Latency_us

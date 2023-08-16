@@ -17,16 +17,7 @@ const (
 type ProxySQL struct {
 	mysql.MySQL
 	Connection *mysql.Connection
-	Users      []User
 	Servers    []Server
-}
-
-type User struct {
-	DefaultHostgroup uint8  `json:"default_hostgroup"`
-	Active           bool   `json:"active"`
-	UseSSL           bool   `json:"use_ssl"`
-	Username         string `json:"username"`
-	Password         string `json:"password"`
 }
 
 type Server struct {
@@ -90,7 +81,7 @@ func (p *ProxySQL) DeleteServer(index int) {
 
 func (p *ProxySQL) InsertServer(index int) {
 	sql := fmt.Sprintf(
-		"INSERT INTO mysql_servers (hostgroup_id, hostname, status, max_connections, weight, max_replication_lag) VALUES (%d, '%s', '%s', %d, %d, %d);",
+		"INSERT INTO mysql_servers (hostgroup_id, hostname, status, max_connections, weight, max_replication_lag, comment) VALUES (%d, '%s', '%s', %d, %d, %d, 'Managed by DeBeAndo');",
 		p.Servers[index].HostgroupID,
 		p.Servers[index].Hostname,
 		ONLINE,

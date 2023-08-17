@@ -121,5 +121,14 @@ func (p *ProxySQL) SaveServers() {
 	p.Connection.Query("SAVE MYSQL SERVERS TO DISK;")
 }
 
-// stats_mysql_connection_pool_reset
-// hostgroup, srv_host, srv_port, status, ConnUsed, ConnFree, ConnOK, ConnERR, MaxConnUsed, Queries, Queries_GTID_sync, Bytes_data_sent, Bytes_data_recv, Latency_us
+func (p *ProxySQL) StatConnectionPoolReset() {
+	p.Connection.Query("SELECT * FROM stats_mysql_connection_pool_reset;")
+}
+
+func (p *ProxySQL) StatConnectionPool(index int) {
+	sql := fmt.Sprintf(
+		"SELECT hostgroup, substr(srv_host, 0, instr(srv_host, '.')) AS host, status, ConnUsed, ConnOK, ConnERR, Queries FROM stats_mysql_connection_pool WHERE srv_host = '%s';",
+		p.Servers[index].Hostname,
+	)
+	p.Connection.Query(sql)
+}

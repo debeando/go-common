@@ -30,3 +30,7 @@ func BetweenNow(b time.Time, a time.Time) bool {
 
 	return n.After(b) && n.Before(a)
 }
+
+func Sleep(t int) {
+	time.Sleep(time.Duration(t) * time.Millisecond)
+}

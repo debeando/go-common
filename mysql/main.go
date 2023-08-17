@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/debeando/go-common/log"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -50,6 +52,10 @@ func (s *Connection) Connect() error {
 }
 
 func (s *Connection) Query(query string) (map[int]map[string]string, error) {
+	log.DebugWithFields("MySQL execute.", log.Fields{
+		"Query": query,
+	})
+
 	if err := s.Instance.Ping(); err != nil {
 		return nil, err
 	}

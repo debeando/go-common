@@ -29,3 +29,11 @@ func Warning(m string) {
 func WarningWithFields(m string, f Fields) {
 	logrus.WithFields(logrus.Fields(f)).Warning(m)
 }
+
+func Error(m string) {
+	logrus.Error(m)
+}
+
+func ErrorWithFields(m string, f Fields) {
+	logrus.WithFields(logrus.Fields(f)).Error(m)
+}

@@ -6,6 +6,22 @@ import (
 
 type Fields map[string]interface{}
 
+type Level uint32
+
+const (
+	PanicLevel Level = iota
+	FatalLevel
+	ErrorLevel
+	WarnLevel
+	InfoLevel
+	DebugLevel
+	TraceLevel
+)
+
+func SetLevel(level Level) {
+	logrus.SetLevel(logrus.Level(level))
+}
+
 func Info(m string) {
 	logrus.Info(m)
 }

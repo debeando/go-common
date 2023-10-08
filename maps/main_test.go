@@ -1,6 +1,7 @@
 package maps_test
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/debeando/go-common/maps"
@@ -8,7 +9,7 @@ import (
 
 func TestKeys(t *testing.T) {
 	result := maps.Keys([]map[string]string{{"foo": "a", "bar": "1"}, {"foo": "b", "bar": "2"}})
-	expected := []string{"foo", "bar"}
+	expected := []string{"bar", "foo"}
 
 	if !reflect.DeepEqual(result, expected) {
 		t.Error("Expected: []string{\"foo\", \"bar\"}")

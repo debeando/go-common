@@ -27,11 +27,18 @@ type Connection struct {
 
 var instance = make(map[string]*Connection)
 
-func GetInstance(name string) *Connection {
+func New(name, dsn string) *Connection {
 	if instance[name] == nil {
-		instance[name] = &Connection{}
+		instance[name] = &Connection{
+			Name: name,
+			DSN:  dsn,
+		}
 		instance[name].Name = name
 	}
+	return instance[name]
+}
+
+func Get(name string) *Connection {
 	return instance[name]
 }
 
@@ -39,10 +46,12 @@ func (c *Connection) Connect() error {
 	if c.Instance == nil {
 		conn, err := sql.Open("mysql", c.DSN)
 		if err != nil {
+			log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
 			return err
 		}
 
 		if err := conn.Ping(); err != nil {
+			log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
 			return err
 		}
 
@@ -53,16 +62,19 @@ func (c *Connection) Connect() error {
 
 func (c *Connection) Query(query string) (map[int]map[string]string, error) {
 	log.DebugWithFields("MySQL execute", log.Fields{
-		"Query": query,
+		"name":  c.Name,
+		"query": query,
 	})
 
 	if err := c.Instance.Ping(); err != nil {
+		log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
 		return nil, err
 	}
 
 	// Execute the query
 	rows, err := c.Instance.Query(query)
 	if err != nil {
+		log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
 		return nil, err
 	}
 	defer rows.Close()
@@ -70,6 +82,7 @@ func (c *Connection) Query(query string) (map[int]map[string]string, error) {
 	// Get column names
 	cols, _ := rows.Columns()
 	if err != nil {
+		log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
 		return nil, err
 	}
 
@@ -85,6 +98,7 @@ func (c *Connection) Query(query string) (map[int]map[string]string, error) {
 	for rows.Next() {
 		err = rows.Scan(columnPointers...)
 		if err != nil {
+			log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
 			return nil, err
 		}
 

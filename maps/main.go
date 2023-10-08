@@ -20,3 +20,21 @@ func In(key string, list map[string]string) bool {
 	}
 	return false
 }
+
+func ComparteString(a, b map[string]string) bool {
+	if (a == nil) != (b == nil) {
+		return false
+	}
+
+	if len(a) != len(b) {
+		return false
+	}
+
+	for k := range a {
+		if a[k] != b[k] {
+			return false
+		}
+	}
+
+	return true
+}

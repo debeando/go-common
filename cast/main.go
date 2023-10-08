@@ -37,3 +37,21 @@ func ToDateTime(timestamp string, layout string) string {
 	}
 	return t.Format("2006-01-02 15:04:05")
 }
+
+func IntToString(value int) string {
+	return strconv.Itoa(value)
+}
+
+func InterfaceToInt64(value interface{}) int64 {
+	if v, ok := value.(int64); ok {
+		return v
+	}
+	return 0
+}
+
+func InterfaceToFloat64(value interface{}) float64 {
+	if v, ok := value.(float64); ok {
+		return float64(v)
+	}
+	return 0
+}

@@ -11,7 +11,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.19
+        go-version: 1.21
 
     - name: Get all dependencies
       run: go get -u ./...
@@ -27,23 +27,3 @@ jobs:
 
     - name: Build
       run: go build -v ./...
-
-  release:
-    name: Build and deploy new release
-    runs-on: ubuntu-latest
-    needs: test
-    if: startsWith(github.ref, 'refs/tags/v')
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.19
-
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v2
-        with:
-          args: release --rm-dist
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

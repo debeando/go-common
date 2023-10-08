@@ -27,7 +27,7 @@ type Connection struct {
 
 var instance = make(map[string]*Connection)
 
-func Instance(name string) *Connection {
+func GetInstance(name string) *Connection {
 	if instance[name] == nil {
 		instance[name] = &Connection{}
 		instance[name].Name = name
@@ -52,7 +52,7 @@ func (c *Connection) Connect() error {
 }
 
 func (c *Connection) Query(query string) (map[int]map[string]string, error) {
-	log.DebugWithFields("MySQL execute.", log.Fields{
+	log.DebugWithFields("MySQL execute", log.Fields{
 		"Query": query,
 	})
 

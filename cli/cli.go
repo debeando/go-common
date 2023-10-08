@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 )
 
@@ -79,6 +80,21 @@ func (c *CLI) Lookup(name string) Arg {
 	}
 
 	return Arg{}
+}
+
+func (c *CLI) IsSet(name string) bool {
+	return len(c.Lookup(name).Value) > 0
+}
+
+func (c *CLI) IsPath(name string) bool {
+	_, err := os.Stat(c.Lookup(name).Value)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return false
 }
 
 func (c *CLI) Parser() {

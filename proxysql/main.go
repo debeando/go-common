@@ -1,10 +1,12 @@
 package proxysql
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/debeando/go-common/cast"
 	"github.com/debeando/go-common/mysql"
+	"github.com/debeando/go-common/time"
 )
 
 const (
@@ -113,6 +115,31 @@ func (p *ProxySQL) EnableServer(index int) {
 	p.SaveServers()
 }
 
+func (p *ProxySQL) DisableServer(index int) error {
+	var cntQueries int
+	var stats map[string]string
+
+	p.SetStatusServer(0, OFFLINE_SOFT)
+	p.LoadServers()
+	p.SaveServers()
+
+	time.Sleep(300000)
+
+	p.StatConnectionPoolReset()
+	stats = p.StatConnectionPool(0)
+	cntQueries += cast.StringToInt(stats["Queries"])
+
+	time.Sleep(60000)
+
+	stats = p.StatConnectionPool(0)
+	cntQueries += cast.StringToInt(stats["Queries"])
+
+	if cntQueries > 0 {
+		return errors.New("Active connections on MySQL replica.")
+	}
+	return nil
+}
+
 func (p *ProxySQL) LoadServers() {
 	p.Connection.Query("LOAD MYSQL SERVERS TO RUNTIME;")
 }
@@ -125,10 +152,14 @@ func (p *ProxySQL) StatConnectionPoolReset() {
 	p.Connection.Query("SELECT * FROM stats_mysql_connection_pool_reset;")
 }
 
-func (p *ProxySQL) StatConnectionPool(index int) {
+func (p *ProxySQL) StatConnectionPool(index int) map[string]string {
 	sql := fmt.Sprintf(
 		"SELECT hostgroup, substr(srv_host, 0, instr(srv_host, '.')) AS host, status, ConnUsed, ConnOK, ConnERR, Queries FROM stats_mysql_connection_pool WHERE srv_host = '%s';",
 		p.Servers[index].Hostname,
 	)
-	p.Connection.Query(sql)
+	result, _ := p.Connection.Query(sql)
+	if len(result) == 1 {
+		return result[0]
+	}
+	return nil
 }

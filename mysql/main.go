@@ -27,7 +27,7 @@ type Connection struct {
 
 var instance = make(map[string]*Connection)
 
-func Instance(name string) *Connection {
+func GetInstance(name string) *Connection {
 	if instance[name] == nil {
 		instance[name] = &Connection{}
 		instance[name].Name = name
@@ -35,9 +35,9 @@ func Instance(name string) *Connection {
 	return instance[name]
 }
 
-func (s *Connection) Connect() error {
-	if s.Instance == nil {
-		conn, err := sql.Open("mysql", s.DSN)
+func (c *Connection) Connect() error {
+	if c.Instance == nil {
+		conn, err := sql.Open("mysql", c.DSN)
 		if err != nil {
 			return err
 		}
@@ -46,22 +46,22 @@ func (s *Connection) Connect() error {
 			return err
 		}
 
-		s.Instance = conn
+		c.Instance = conn
 	}
 	return nil
 }
 
-func (s *Connection) Query(query string) (map[int]map[string]string, error) {
-	log.DebugWithFields("MySQL execute.", log.Fields{
+func (c *Connection) Query(query string) (map[int]map[string]string, error) {
+	log.DebugWithFields("MySQL execute", log.Fields{
 		"Query": query,
 	})
 
-	if err := s.Instance.Ping(); err != nil {
+	if err := c.Instance.Ping(); err != nil {
 		return nil, err
 	}
 
 	// Execute the query
-	rows, err := s.Instance.Query(query)
+	rows, err := c.Instance.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -73,8 +73,8 @@ func (s *Connection) Query(query string) (map[int]map[string]string, error) {
 		return nil, err
 	}
 
-	dataset := make(map[int]map[string]string)
 	row_id := 0
+	dataset := make(map[int]map[string]string)
 	columns := make([]sql.RawBytes, len(cols))
 	columnPointers := make([]interface{}, len(cols))
 
@@ -101,9 +101,9 @@ func (s *Connection) Query(query string) (map[int]map[string]string, error) {
 	return dataset, nil
 }
 
-func (s *Connection) Close() {
-	if s.Instance != nil {
-		s.Instance.Close()
+func (c *Connection) Close() {
+	if c.Instance != nil {
+		c.Instance.Close()
 	}
 }
 

@@ -61,6 +61,10 @@ func (c *Connection) Connect() error {
 }
 
 func (c *Connection) Query(query string) (map[int]map[string]string, error) {
+	if c.Instance == nil {
+		return nil, nil
+	}
+
 	log.DebugWithFields("MySQL execute", log.Fields{
 		"name":  c.Name,
 		"query": query,

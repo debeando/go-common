@@ -11,3 +11,10 @@ And now when you compile this module (go install), it will use your local code r
 ```bash
 go mod edit -replace github.com/debeando/go-common=$HOME/go/src/github.com/debeando/go-common
 ```
+
+Revert replacement:
+
+```bash
+go mod edit -dropreplace $HOME/go/src/github.com/debeando/go-common
+go mod tidy
+```

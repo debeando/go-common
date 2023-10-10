@@ -1,7 +1,9 @@
 package mysql
 
 import (
+	// "fmt"
 	"database/sql"
+	"errors"
 	"strconv"
 	"strings"
 
@@ -62,7 +64,7 @@ func (c *Connection) Connect() error {
 
 func (c *Connection) Query(query string) (map[int]map[string]string, error) {
 	if c.Instance == nil {
-		return nil, nil
+		return nil, errors.New("The instance is empty.")
 	}
 
 	log.DebugWithFields("MySQL execute", log.Fields{
@@ -117,6 +119,94 @@ func (c *Connection) Query(query string) (map[int]map[string]string, error) {
 	}
 
 	return dataset, nil
+}
+
+func (c *Connection) FetchBool(query string) bool {
+	r := c.FetchOne(query)
+
+	if r == nil {
+		return false
+	}
+
+	return true
+}
+
+func (c *Connection) FetchOne(query string) any {
+	if c.Instance == nil {
+		return nil
+	}
+
+	log.DebugWithFields("MySQL execute", log.Fields{
+		"name":  c.Name,
+		"query": query,
+	})
+
+	if err := c.Instance.Ping(); err != nil {
+		log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
+		return nil
+	}
+
+	var val any
+	row := c.Instance.QueryRow(query)
+	row.Scan(&val)
+
+	return val
+}
+
+func (c *Connection) FetchAll(query string, fn func(map[string]string)) error {
+	if c.Instance == nil {
+		return errors.New("The instance is empty.")
+	}
+
+	log.DebugWithFields("MySQL execute", log.Fields{
+		"name":  c.Name,
+		"query": query,
+	})
+
+	if err := c.Instance.Ping(); err != nil {
+		log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
+		return err
+	}
+
+	// Execute the query
+	rows, err := c.Instance.Query(query)
+	if err != nil {
+		log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
+		return err
+	}
+	defer rows.Close()
+
+	// Get column names
+	cols, _ := rows.Columns()
+	if err != nil {
+		log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
+		return err
+	}
+
+	columns := make([]sql.RawBytes, len(cols))
+	columnPointers := make([]interface{}, len(cols))
+
+	for i := range cols {
+		columnPointers[i] = &columns[i]
+	}
+
+	for rows.Next() {
+		err = rows.Scan(columnPointers...)
+		if err != nil {
+			log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
+			return err
+		}
+
+		row := make(map[string]string)
+
+		for columnIndex, columnValue := range columns {
+			row[cols[columnIndex]] = string(columnValue)
+		}
+
+		fn(row)
+	}
+
+	return nil
 }
 
 func (c *Connection) Close() {

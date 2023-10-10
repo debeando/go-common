@@ -15,6 +15,7 @@ go mod edit -replace github.com/debeando/go-common=$HOME/go/src/github.com/debea
 Revert replacement:
 
 ```bash
-go mod edit -dropreplace $HOME/go/src/github.com/debeando/go-common
+go mod edit -dropreplace github.com/debeando/go-common
+go get -u
 go mod tidy
 ```

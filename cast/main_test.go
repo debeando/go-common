@@ -40,3 +40,19 @@ func TestToDateTime(t *testing.T) {
 		t.Error("Expected: 2018-12-31 15:04:05")
 	}
 }
+
+func TestInterfaceIsNumber(t *testing.T) {
+	assert.Equal(t, cast.InterfaceIsNumber("123"), false)
+	assert.Equal(t, cast.InterfaceIsNumber("abc"), false)
+	assert.Equal(t, cast.InterfaceIsNumber("1bc"), false)
+	assert.Equal(t, cast.InterfaceIsNumber(int(123)), true)
+	assert.Equal(t, cast.InterfaceIsNumber(int8(-123)), true)
+	assert.Equal(t, cast.InterfaceIsNumber(int32(123)), true)
+	assert.Equal(t, cast.InterfaceIsNumber(int64(-123)), true)
+	assert.Equal(t, cast.InterfaceIsNumber(uint(123)), true)
+	assert.Equal(t, cast.InterfaceIsNumber(uint8(123)), true)
+	assert.Equal(t, cast.InterfaceIsNumber(uint32(123)), true)
+	assert.Equal(t, cast.InterfaceIsNumber(uint64(123)), true)
+	assert.Equal(t, cast.InterfaceIsNumber(float32(12.3)), true)
+	assert.Equal(t, cast.InterfaceIsNumber(float64(12.3)), true)
+}

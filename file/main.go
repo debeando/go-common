@@ -10,9 +10,10 @@ import (
 
 func Exist(path string) bool {
 	info, err := os.Stat(path)
-	if os.IsNotExist(err) {
+	if err != nil {
 		return false
 	}
+
 	return !info.IsDir()
 }
 

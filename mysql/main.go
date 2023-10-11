@@ -215,7 +215,7 @@ func (c *Connection) Close() {
 	}
 }
 
-func ParseValue(value string) (int64, bool) {
+func ParseNumberValue(value string) (int64, bool) {
 	value = strings.ToLower(value)
 
 	if value == "yes" || value == "on" {

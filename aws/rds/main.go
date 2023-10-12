@@ -8,8 +8,25 @@ import (
 	"github.com/aws/aws-sdk-go/service/rds"
 )
 
+type Instance struct {
+	AvailabilityZone string
+	Class string
+	DeletionProtection bool
+	Endpoint string
+	Engine string
+	Identifier string
+	MultiAZ bool
+	PerformanceInsights bool
+	Port int64
+	Status string
+	Username string
+	Version string
+}
+
+type Instances []Instance
+
 type Config struct {
-	Client     *rds.RDS `json:"-"`          // AWS rds connection.
+	Client     *rds.RDS `json:"-"`          // AWS RDS connection.
 	Instance   string   `json:"instance"`   // New instance (replica).
 	Class      string   `json:"class"`      // New instance class.
 	Region     string   `json:"region"`     // AWS region account.
@@ -29,6 +46,30 @@ func (c *Config) Init() (err error) {
 	c.Client = rds.New(sess)
 
 	return
+}
+
+func (c *Config) List() Instances {
+	instances := Instances{}
+	result, _ := c.Client.DescribeDBInstances(nil)
+
+	for _, d := range result.DBInstances {
+		instances = append(instances, Instance{
+			AvailabilityZone: aws.StringValue(d.AvailabilityZone),
+			Class: aws.StringValue(d.DBInstanceClass),
+			DeletionProtection: aws.BoolValue(d.DeletionProtection),
+			Endpoint: aws.StringValue(d.Endpoint.Address),
+			Engine: aws.StringValue(d.Engine),
+			Identifier: aws.StringValue(d.DBInstanceIdentifier),
+			MultiAZ: aws.BoolValue(d.MultiAZ),
+			PerformanceInsights: aws.BoolValue(d.PerformanceInsightsEnabled),
+			Port: aws.Int64Value(d.Endpoint.Port),
+			Status: aws.StringValue(d.DBInstanceStatus),
+			Username: aws.StringValue(d.MasterUsername),
+			Version: aws.StringValue(d.EngineVersion),
+		})
+	}
+
+	return instances
 }
 
 func (c *Config) Create() (err error) {

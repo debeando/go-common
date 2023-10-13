@@ -26,7 +26,7 @@ type Table interface {
 }
 
 type Value any
-type Row  []Value
+type Row []Value
 type Rows []Row
 
 type table struct {

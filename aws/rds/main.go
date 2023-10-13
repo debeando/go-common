@@ -8,23 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/rds"
 )
 
-type Instance struct {
-	AvailabilityZone string
-	Class string
-	DeletionProtection bool
-	Endpoint string
-	Engine string
-	Identifier string
-	MultiAZ bool
-	PerformanceInsights bool
-	Port int64
-	Status string
-	Username string
-	Version string
-}
-
-type Instances []Instance
-
 type Config struct {
 	Client     *rds.RDS `json:"-"`          // AWS RDS connection.
 	Instance   string   `json:"instance"`   // New instance (replica).
@@ -50,26 +33,28 @@ func (c *Config) Init() (err error) {
 
 func (c *Config) List() Instances {
 	instances := Instances{}
+	instance := Instance{}
 	result, _ := c.Client.DescribeDBInstances(nil)
 
 	for _, d := range result.DBInstances {
-		instances = append(instances, Instance{
-			AvailabilityZone: aws.StringValue(d.AvailabilityZone),
-			Class: aws.StringValue(d.DBInstanceClass),
-			DeletionProtection: aws.BoolValue(d.DeletionProtection),
-			Endpoint: aws.StringValue(d.Endpoint.Address),
-			Engine: aws.StringValue(d.Engine),
-			Identifier: aws.StringValue(d.DBInstanceIdentifier),
-			MultiAZ: aws.BoolValue(d.MultiAZ),
-			PerformanceInsights: aws.BoolValue(d.PerformanceInsightsEnabled),
-			Port: aws.Int64Value(d.Endpoint.Port),
-			Status: aws.StringValue(d.DBInstanceStatus),
-			Username: aws.StringValue(d.MasterUsername),
-			Version: aws.StringValue(d.EngineVersion),
-		})
+		instances = append(instances, *instance.New(d))
 	}
 
 	return instances
+}
+
+func (c *Config) Describe(identifier string) (Instance, error) {
+	instance := Instance{}
+	input := &rds.DescribeDBInstancesInput{
+		DBInstanceIdentifier: aws.String(identifier),
+	}
+
+	result, err := c.Client.DescribeDBInstances(input)
+	if err != nil {
+		return Instance{}, err
+	}
+
+	return *instance.New(result.DBInstances[0]), nil
 }
 
 func (c *Config) Create() (err error) {
@@ -101,7 +86,7 @@ func (c *Config) Delete() (err error) {
 	return
 }
 
-func (c *Config) Describe() {
+func (c *Config) DescribeOld() {
 	c.Endpoint = ""
 	c.Status = ""
 
@@ -128,12 +113,12 @@ func (c *Config) Describe() {
 }
 
 func (c *Config) Exist() bool {
-	c.Describe()
+	c.DescribeOld()
 	return len(c.Endpoint) > 0 && len(c.Status) > 0
 }
 
 func (c *Config) IsAvailable() bool {
-	c.Describe()
+	c.DescribeOld()
 	return len(c.Endpoint) > 0 && c.Status == "available"
 }
 
@@ -146,7 +131,7 @@ func (c *Config) IsReplica() bool {
 }
 
 func (c *Config) IsNotAvailable() bool {
-	c.Describe()
+	c.DescribeOld()
 	return len(c.Endpoint) == 0 && len(c.Status) == 0
 }
 

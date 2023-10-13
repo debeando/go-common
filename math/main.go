@@ -8,3 +8,10 @@ func Percentage(value int64, max uint64) float64 {
 	}
 	return 0
 }
+
+func Max(x, y int) int {
+	if x > y {
+		return x
+	}
+	return y
+}

@@ -11,8 +11,8 @@ func main() {
 	instances := r.List()
 
 	tbl := table.New("Engine", "Version", "Identifier", "Class", "Status")
-  for _, instance := range instances {
-    tbl.AddRow(instance.Engine, instance.Version, instance.Identifier, instance.Class, instance.Status)
-  }
+	for _, instance := range instances {
+		tbl.AddRow(instance.Engine, instance.Version, instance.Identifier, instance.Class, instance.Status)
+	}
 	tbl.Print()
 }

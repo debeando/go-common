@@ -57,6 +57,38 @@ func (c *Config) Describe(identifier string) (Instance, error) {
 	return *instance.New(result.DBInstances[0]), nil
 }
 
+func (c *Config) Logs(identifier string) (Logs, error) {
+	logs := Logs{}
+	input := &rds.DescribeDBLogFilesInput{
+		DBInstanceIdentifier: aws.String(identifier),
+	}
+
+	result, err := c.Client.DescribeDBLogFiles(input)
+	if err != nil {
+		return Logs{}, err
+	}
+
+	return *logs.New(result), nil
+}
+
+func (c *Config) PollLogs(identifier, filename string) (string, error) {
+	params := &rds.DownloadDBLogFilePortionInput{
+		DBInstanceIdentifier: aws.String(identifier),
+		LogFileName:          aws.String(filename),
+	}
+
+	result, err := c.Client.DownloadDBLogFilePortion(params)
+	if err != nil {
+		return "", err
+	}
+
+	if result.LogFileData != nil {
+		return aws.StringValue(result.LogFileData), nil
+	}
+
+	return "", nil
+}
+
 func (c *Config) Create() (err error) {
 	input := &rds.CreateDBInstanceReadReplicaInput{
 		AutoMinorVersionUpgrade:         aws.Bool(false),

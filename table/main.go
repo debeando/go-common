@@ -108,6 +108,10 @@ func (t *table) Print() {
 func (t *table) calculateWidths() {
 	t.widths = map[int]int{}
 
+	for headerIndex, headerValue := range t.header {
+		t.widths[headerIndex] = math.Max(t.widths[headerIndex], len(fmt.Sprint(headerValue)))
+	}
+
 	for _, row := range t.rows {
 		for columnIndex, columnValue := range row {
 			t.widths[columnIndex] = math.Max(t.widths[columnIndex], len(fmt.Sprint(columnValue)))

@@ -42,6 +42,15 @@ func Dir(path string) string {
 	return filepath.Dir(path)
 }
 
+func IsDir(path string) bool {
+	info, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+
+	return info.IsDir()
+}
+
 func GetInt64(path string) int64 {
 	lines := ReadAsString(path)
 	if len(lines) > 0 {

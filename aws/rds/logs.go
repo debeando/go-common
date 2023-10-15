@@ -1,6 +1,8 @@
 package rds
 
 import (
+	"sort"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
 )
@@ -23,4 +25,24 @@ func (l *Logs) New(input *rds.DescribeDBLogFilesOutput) *Logs {
 	}
 
 	return l
+}
+
+// Len is part of sort.Interface.
+func (l Logs) Len() int {
+	return len(l)
+}
+
+// Less is part of sort.Interface.
+// We use count as the value to sort by
+func (l Logs) Less(i, j int) bool {
+	return l[i].Size < l[j].Size
+}
+
+// Swap is part of sort.Interface.
+func (l Logs) Swap(i, j int) {
+	l[i], l[j] = l[j], l[i]
+}
+
+func (l Logs) SortBySize() {
+	sort.Sort(l)
 }

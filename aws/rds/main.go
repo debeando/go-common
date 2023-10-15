@@ -57,10 +57,11 @@ func (c *Config) Describe(identifier string) (Instance, error) {
 	return *instance.New(result.DBInstances[0]), nil
 }
 
-func (c *Config) Logs(identifier string) (Logs, error) {
+func (c *Config) Logs(identifier, filename string) (Logs, error) {
 	logs := Logs{}
 	input := &rds.DescribeDBLogFilesInput{
 		DBInstanceIdentifier: aws.String(identifier),
+		FilenameContains:     aws.String(filename),
 	}
 
 	result, err := c.Client.DescribeDBLogFiles(input)

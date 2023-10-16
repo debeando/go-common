@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/rds"
 )
 
-type Config struct {
+type RDS struct {
 	Client     *rds.RDS `json:"-"`          // AWS RDS connection.
 	Instance   string   `json:"instance"`   // New instance (replica).
 	Class      string   `json:"class"`      // New instance class.
@@ -21,20 +21,20 @@ type Config struct {
 	Zone       string   `json:"zone"`       // New instance Availability Zone.
 }
 
-func (c *Config) Init() (err error) {
+func (r *RDS) Init() (err error) {
 	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(c.Region),
+		Region: aws.String(r.Region),
 	})
 
-	c.Client = rds.New(sess)
+	r.Client = rds.New(sess)
 
 	return
 }
 
-func (c *Config) List() Instances {
+func (r *RDS) List() Instances {
 	instances := Instances{}
 	instance := Instance{}
-	result, _ := c.Client.DescribeDBInstances(nil)
+	result, _ := r.Client.DescribeDBInstances(nil)
 
 	for _, d := range result.DBInstances {
 		instances = append(instances, *instance.New(d))
@@ -43,13 +43,13 @@ func (c *Config) List() Instances {
 	return instances
 }
 
-func (c *Config) Describe(identifier string) (Instance, error) {
+func (r *RDS) Describe(identifier string) (Instance, error) {
 	instance := Instance{}
 	input := &rds.DescribeDBInstancesInput{
 		DBInstanceIdentifier: aws.String(identifier),
 	}
 
-	result, err := c.Client.DescribeDBInstances(input)
+	result, err := r.Client.DescribeDBInstances(input)
 	if err != nil {
 		return Instance{}, err
 	}
@@ -57,14 +57,14 @@ func (c *Config) Describe(identifier string) (Instance, error) {
 	return *instance.New(result.DBInstances[0]), nil
 }
 
-func (c *Config) Logs(identifier, filename string) (Logs, error) {
+func (r *RDS) Logs(identifier, filename string) (Logs, error) {
 	logs := Logs{}
 	input := &rds.DescribeDBLogFilesInput{
 		DBInstanceIdentifier: aws.String(identifier),
 		FilenameContains:     aws.String(filename),
 	}
 
-	result, err := c.Client.DescribeDBLogFiles(input)
+	result, err := r.Client.DescribeDBLogFiles(input)
 	if err != nil {
 		return Logs{}, err
 	}
@@ -72,13 +72,13 @@ func (c *Config) Logs(identifier, filename string) (Logs, error) {
 	return *logs.New(result), nil
 }
 
-func (c *Config) PollLogs(identifier, filename string) (string, error) {
+func (r *RDS) PollLogs(identifier, filename string) (string, error) {
 	params := &rds.DownloadDBLogFilePortionInput{
 		DBInstanceIdentifier: aws.String(identifier),
 		LogFileName:          aws.String(filename),
 	}
 
-	result, err := c.Client.DownloadDBLogFilePortion(params)
+	result, err := r.Client.DownloadDBLogFilePortion(params)
 	if err != nil {
 		return "", err
 	}
@@ -90,92 +90,92 @@ func (c *Config) PollLogs(identifier, filename string) (string, error) {
 	return "", nil
 }
 
-func (c *Config) Create() (err error) {
+func (r *RDS) Create() (err error) {
 	input := &rds.CreateDBInstanceReadReplicaInput{
 		AutoMinorVersionUpgrade:         aws.Bool(false),
-		AvailabilityZone:                aws.String(c.Zone),
-		DBInstanceClass:                 aws.String(c.Class),
-		DBInstanceIdentifier:            aws.String(c.Instance),
+		AvailabilityZone:                aws.String(r.Zone),
+		DBInstanceClass:                 aws.String(r.Class),
+		DBInstanceIdentifier:            aws.String(r.Instance),
 		DeletionProtection:              aws.Bool(false),
 		EnableCustomerOwnedIp:           aws.Bool(false),
 		EnableIAMDatabaseAuthentication: aws.Bool(false),
 		EnablePerformanceInsights:       aws.Bool(false),
 		MultiAZ:                         aws.Bool(false),
 		PubliclyAccessible:              aws.Bool(false),
-		SourceDBInstanceIdentifier:      aws.String(c.Primary),
+		SourceDBInstanceIdentifier:      aws.String(r.Primary),
 	}
 
-	_, err = c.Client.CreateDBInstanceReadReplica(input)
+	_, err = r.Client.CreateDBInstanceReadReplica(input)
 	return
 }
 
-func (c *Config) Delete() (err error) {
+func (r *RDS) Delete() (err error) {
 	input := &rds.DeleteDBInstanceInput{
-		DBInstanceIdentifier: aws.String(c.Instance),
+		DBInstanceIdentifier: aws.String(r.Instance),
 		SkipFinalSnapshot:    aws.Bool(true),
 	}
 
-	_, err = c.Client.DeleteDBInstance(input)
+	_, err = r.Client.DeleteDBInstance(input)
 	return
 }
 
-func (c *Config) DescribeOld() {
-	c.Endpoint = ""
-	c.Status = ""
+func (r *RDS) DescribeOld() {
+	r.Endpoint = ""
+	r.Status = ""
 
 	input := &rds.DescribeDBInstancesInput{
-		DBInstanceIdentifier: aws.String(c.Instance),
+		DBInstanceIdentifier: aws.String(r.Instance),
 	}
 
-	result, err := c.Client.DescribeDBInstances(input)
+	result, err := r.Client.DescribeDBInstances(input)
 	if err != nil {
 		return
 	}
 
-	c.Status = *result.DBInstances[0].DBInstanceStatus
-	c.Protection = *result.DBInstances[0].DeletionProtection
+	r.Status = *result.DBInstances[0].DBInstanceStatus
+	r.Protection = *result.DBInstances[0].DeletionProtection
 
 	if result.DBInstances[0].ReadReplicaSourceDBInstanceIdentifier != nil {
-		c.Primary = *result.DBInstances[0].ReadReplicaSourceDBInstanceIdentifier
+		r.Primary = *result.DBInstances[0].ReadReplicaSourceDBInstanceIdentifier
 	}
 
 	if result.DBInstances[0].Endpoint != nil {
-		c.Endpoint = *result.DBInstances[0].Endpoint.Address
-		c.Port = uint16(*result.DBInstances[0].Endpoint.Port)
+		r.Endpoint = *result.DBInstances[0].Endpoint.Address
+		r.Port = uint16(*result.DBInstances[0].Endpoint.Port)
 	}
 }
 
-func (c *Config) Exist() bool {
-	c.DescribeOld()
-	return len(c.Endpoint) > 0 && len(c.Status) > 0
+func (r *RDS) Exist() bool {
+	r.DescribeOld()
+	return len(r.Endpoint) > 0 && len(r.Status) > 0
 }
 
-func (c *Config) IsAvailable() bool {
-	c.DescribeOld()
-	return len(c.Endpoint) > 0 && c.Status == "available"
+func (r *RDS) IsAvailable() bool {
+	r.DescribeOld()
+	return len(r.Endpoint) > 0 && r.Status == "available"
 }
 
-func (c *Config) IsPrimary() bool {
-	return c.IsAvailable() && len(c.Primary) == 0
+func (r *RDS) IsPrimary() bool {
+	return r.IsAvailable() && len(r.Primary) == 0
 }
 
-func (c *Config) IsReplica() bool {
-	return c.IsAvailable() && len(c.Primary) > 0
+func (r *RDS) IsReplica() bool {
+	return r.IsAvailable() && len(r.Primary) > 0
 }
 
-func (c *Config) IsNotAvailable() bool {
-	c.DescribeOld()
-	return len(c.Endpoint) == 0 && len(c.Status) == 0
+func (r *RDS) IsNotAvailable() bool {
+	r.DescribeOld()
+	return len(r.Endpoint) == 0 && len(r.Status) == 0
 }
 
-func (c *Config) WaitUntilAvailable() error {
+func (r *RDS) WaitUntilAvailable() error {
 	return retry.Do(30, 60, func() bool {
-		return c.IsAvailable()
+		return r.IsAvailable()
 	})
 }
 
-func (c *Config) WaitUntilUnavailable() error {
+func (r *RDS) WaitUntilUnavailable() error {
 	return retry.Do(30, 60, func() bool {
-		return c.IsNotAvailable()
+		return r.IsNotAvailable()
 	})
 }

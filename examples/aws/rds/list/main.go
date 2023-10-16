@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	r := rds.Config{}
+	r := rds.RDS{}
 	r.Init()
 	instances := r.List()
 

@@ -1,8 +1,6 @@
 package rds
 
 import (
-	"errors"
-
 	"github.com/debeando/go-common/retry"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -24,10 +22,6 @@ type RDS struct {
 }
 
 func (r *RDS) Init() (err error) {
-	if len(r.Region) == 0 {
-		return errors.New("Empty environment variable: AWS_REGION")
-	}
-
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(r.Region),
 	})

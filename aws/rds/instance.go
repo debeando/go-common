@@ -29,11 +29,6 @@ type Instance struct {
 
 type Instances []Instance
 
-type ParameterGroup struct {
-	Name   string
-	Status string
-}
-
 func (i *Instance) New(instance *rds.DBInstance) *Instance {
 	tags := Tags{}
 

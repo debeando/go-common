@@ -23,8 +23,8 @@ type RDS struct {
 	Zone       string   `json:"zone"`       // New instance Availability Zone.
 }
 
-func (c *Config) Init() (err error) {
-	if len(c.Region) == 0 {
+func (r *RDS) Init() (err error) {
+	if len(r.Region) == 0 {
 		return errors.New("Empty environment variable: AWS_REGION")
 	}
 

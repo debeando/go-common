@@ -48,12 +48,12 @@ func (c *Connection) Connect() error {
 	if c.Instance == nil {
 		conn, err := sql.Open("mysql", c.DSN)
 		if err != nil {
-			log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
+			log.ErrorWithFields("MySQL:Connect", log.Fields{"name": c.Name, "message": err})
 			return err
 		}
 
 		if err := conn.Ping(); err != nil {
-			log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
+			log.ErrorWithFields("MySQL:Connect:Ping", log.Fields{"name": c.Name, "message": err})
 			return err
 		}
 
@@ -67,20 +67,20 @@ func (c *Connection) Query(query string) (map[int]map[string]string, error) {
 		return nil, errors.New("The instance is empty.")
 	}
 
-	log.DebugWithFields("MySQL execute", log.Fields{
+	log.DebugWithFields("MySQL:Query", log.Fields{
 		"name":  c.Name,
 		"query": query,
 	})
 
 	if err := c.Instance.Ping(); err != nil {
-		log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
+		log.ErrorWithFields("MySQL:Query:Ping", log.Fields{"name": c.Name, "message": err})
 		return nil, err
 	}
 
 	// Execute the query
 	rows, err := c.Instance.Query(query)
 	if err != nil {
-		log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
+		log.ErrorWithFields("MySQL:Query", log.Fields{"name": c.Name, "message": err})
 		return nil, err
 	}
 	defer rows.Close()
@@ -88,7 +88,7 @@ func (c *Connection) Query(query string) (map[int]map[string]string, error) {
 	// Get column names
 	cols, _ := rows.Columns()
 	if err != nil {
-		log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
+		log.ErrorWithFields("MySQL:Query:Columns", log.Fields{"name": c.Name, "message": err})
 		return nil, err
 	}
 
@@ -104,7 +104,7 @@ func (c *Connection) Query(query string) (map[int]map[string]string, error) {
 	for rows.Next() {
 		err = rows.Scan(columnPointers...)
 		if err != nil {
-			log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
+			log.ErrorWithFields("MySQL:Query:Scan", log.Fields{"name": c.Name, "message": err})
 			return nil, err
 		}
 
@@ -136,13 +136,13 @@ func (c *Connection) FetchOne(query string) any {
 		return nil
 	}
 
-	log.DebugWithFields("MySQL execute", log.Fields{
+	log.DebugWithFields("MySQL:FetchOne", log.Fields{
 		"name":  c.Name,
 		"query": query,
 	})
 
 	if err := c.Instance.Ping(); err != nil {
-		log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
+		log.ErrorWithFields("MySQL:FetchOne:Ping", log.Fields{"name": c.Name, "message": err})
 		return nil
 	}
 
@@ -158,20 +158,20 @@ func (c *Connection) FetchAll(query string, fn func(map[string]string)) error {
 		return errors.New("The instance is empty.")
 	}
 
-	log.DebugWithFields("MySQL execute", log.Fields{
+	log.DebugWithFields("MySQL:FetchAll", log.Fields{
 		"name":  c.Name,
 		"query": query,
 	})
 
 	if err := c.Instance.Ping(); err != nil {
-		log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
+		log.ErrorWithFields("MySQL:FetchAll:Ping", log.Fields{"name": c.Name, "message": err})
 		return err
 	}
 
 	// Execute the query
 	rows, err := c.Instance.Query(query)
 	if err != nil {
-		log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
+		log.ErrorWithFields("MySQL:FetchAll:Query", log.Fields{"name": c.Name, "message": err})
 		return err
 	}
 	defer rows.Close()
@@ -179,7 +179,7 @@ func (c *Connection) FetchAll(query string, fn func(map[string]string)) error {
 	// Get column names
 	cols, _ := rows.Columns()
 	if err != nil {
-		log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
+		log.ErrorWithFields("MySQL:FetchAll:Columns", log.Fields{"name": c.Name, "message": err})
 		return err
 	}
 
@@ -193,7 +193,7 @@ func (c *Connection) FetchAll(query string, fn func(map[string]string)) error {
 	for rows.Next() {
 		err = rows.Scan(columnPointers...)
 		if err != nil {
-			log.ErrorWithFields("MySQL execute", log.Fields{"name": c.Name, "message": err})
+			log.ErrorWithFields("MySQL:FetchAll:Scan", log.Fields{"name": c.Name, "message": err})
 			return err
 		}
 

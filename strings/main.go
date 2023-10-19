@@ -53,6 +53,10 @@ func ToCamel(s string) string {
 	return n
 }
 
+func Join(elems []string, sep string) string {
+	return strings.Join(elems, sep)
+}
+
 func addWordBoundariesToNumbers(s string) string {
 	numberSequence := regexp.MustCompile(`([a-zA-Z])(\d+)([a-zA-Z]?)`)
 	numberReplacement := []byte(`$1 $2 $3`)

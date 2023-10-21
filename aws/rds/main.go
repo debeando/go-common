@@ -90,6 +90,44 @@ func (r *RDS) PollLogs(identifier, filename string) (string, error) {
 	return "", nil
 }
 
+func (r *RDS) ParametersGroup() (ParametersGroup, error) {
+	pg := ParametersGroup{}
+
+	params := &rds.DescribeDBParameterGroupsInput{}
+
+	result, err := r.Client.DescribeDBParameterGroups(params)
+	if err != nil {
+		return ParametersGroup{}, err
+	}
+
+	return *pg.New(result), nil
+}
+
+func (r *RDS) Parameters(name string) (Parameters, error) {
+	p := Parameters{}
+	pageNum := 0
+
+	params := &rds.DescribeDBParametersInput{
+		DBParameterGroupName: aws.String(name),
+	}
+
+	err := r.Client.DescribeDBParametersPages(
+		params,
+		func(page *rds.DescribeDBParametersOutput, lastPage bool) bool {
+			pageNum++
+			// fmt.Println(page)
+			p.New(page)
+
+			return pageNum <= 3
+		})
+	if err != nil {
+		return Parameters{}, err
+	}
+
+	// return *p.New(result), nil
+	return p, nil
+}
+
 func (r *RDS) Create() (err error) {
 	input := &rds.CreateDBInstanceReadReplicaInput{
 		AutoMinorVersionUpgrade:         aws.Bool(false),

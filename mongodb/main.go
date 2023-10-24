@@ -38,12 +38,19 @@ func (c *Connection) Connect() (err error) {
 		return err
 	}
 
-	err = c.Client.Ping(c.Context, nil)
-	if err != nil {
-		log.ErrorWithFields("MongoDB:Connect:Ping", log.Fields{"message": err})
+	if err = c.Ping(); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+func (c *Connection) Ping() (err error) {
+	err = c.Client.Ping(c.Context, nil)
+	if err != nil {
+		log.ErrorWithFields("MongoDB:Ping", log.Fields{"message": err})
+		return err
+	}
 	return nil
 }
 
@@ -53,7 +60,24 @@ func (c *Connection) Close() {
 	}
 }
 
+func (c *Connection) VerifyAndReconnect() (err error) {
+	if err = c.Ping(); err != nil {
+		log.ErrorWithFields("MongoDB:VerifyAndReconnect", log.Fields{"message": err})
+		if IsTimeoutError(err) {
+			c.Close()
+			c.Connect()
+		}
+	}
+	return err
+}
+
 func (c *Connection) RunCommand(database string, cmd interface{}, result interface{}) error {
+	err := c.VerifyAndReconnect()
+	if err != nil {
+		log.ErrorWithFields("MongoDB:RunCommand", log.Fields{"message": err})
+		return err
+	}
+
 	db := c.Client.Database(database)
 	return db.RunCommand(context.TODO(), cmd).Decode(result)
 }
@@ -75,6 +99,12 @@ func (c *Connection) Databases() *Databases {
 }
 
 func (c *Connection) Collections(database string) []string {
+	err := c.VerifyAndReconnect()
+	if err != nil {
+		log.ErrorWithFields("MongoDB:RunCommand", log.Fields{"message": err})
+		return []string{}
+	}
+
 	colls, err := c.Client.Database(database).ListCollectionNames(context.TODO(), bson.M{})
 	if err != nil {
 		log.ErrorWithFields("MongoDB:Collections", log.Fields{"message": err})
@@ -89,4 +119,11 @@ func (c *Connection) CollectionStats(dbName, colName string) *CollectionStats {
 	c.RunCommand(dbName, cmd, collectionStats)
 
 	return collectionStats
+}
+
+func IsTimeoutError(err error) bool {
+	if err, ok := err.(mongo.CommandError); ok && err.Code == 50 {
+		return true
+	}
+	return false
 }

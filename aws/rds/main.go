@@ -76,18 +76,22 @@ func (r *RDS) PollLogs(identifier, filename string) (string, error) {
 	params := &rds.DownloadDBLogFilePortionInput{
 		DBInstanceIdentifier: aws.String(identifier),
 		LogFileName:          aws.String(filename),
+		Marker:               aws.String("0"),
 	}
 
-	result, err := r.Client.DownloadDBLogFilePortion(params)
+	var body string
+
+	err := r.Client.DownloadDBLogFilePortionPages(
+		params,
+		func(page *rds.DownloadDBLogFilePortionOutput, lastPage bool) bool {
+			body = body + aws.StringValue(page.LogFileData)
+			return !lastPage
+		})
 	if err != nil {
 		return "", err
 	}
 
-	if result.LogFileData != nil {
-		return aws.StringValue(result.LogFileData), nil
-	}
-
-	return "", nil
+	return body, nil
 }
 
 func (r *RDS) ParametersGroup() (ParametersGroup, error) {

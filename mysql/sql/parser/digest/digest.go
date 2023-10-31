@@ -1,24 +1,23 @@
-package sql
+package digest
 
 import (
-	// Uncomment only for debug:
-	// "fmt"
 	"strings"
 	"unicode"
 )
 
 func Digest(s string) string {
+	sql := []rune(strings.Trim(strings.ToLower(s), " "))
 	comment := false
 	endnumber := []rune{' ', ',', '+', '-', '*', '/', '^', '%', '(', ')'}
+	length := len(sql)
 	list := false
-	values := false
 	multiline := false
 	number := false
 	quote := rune(0)
 	result := []rune("")
-	sql := []rune(strings.ToLower(s))
+	values := false
 	whitespace := false
-	length := len(sql)
+	whitespaces := 0
 
 	IsNumber := func(r rune) bool {
 		if unicode.IsNumber(r) || r == '.' {
@@ -38,7 +37,7 @@ func Digest(s string) string {
 
 	for x := 0; x < length; x++ {
 		// Uncomment only for debug:
-		// fmt.Printf("--> %d %s %s\n", x, string(sql[x]), string(result))
+		// fmt.Printf("--> %02d/%d %s %s\n", x, length, string(sql[x]), string(result))
 
 		// Remove comments:
 		if !comment && !multiline && sql[x] == '#' {
@@ -74,6 +73,19 @@ func Digest(s string) string {
 			sql[x] = ' '
 			whitespace = true
 			number = false
+		}
+
+		// Remove whitespaces until semicolon:
+		if sql[x] == ' ' {
+			for y := 1; y < (length - x); y++ {
+				if whitespaces >= 0 && sql[x+y] == ';' {
+					return string(append(result, ';'))
+				} else if sql[x+y] == ' ' {
+					whitespaces++
+				} else {
+					break
+				}
+			}
 		}
 
 		// Remove literals inside of list " IN (":
@@ -175,7 +187,6 @@ func Digest(s string) string {
 			continue
 		}
 
-		// Add character:
 		result = append(result, sql[x])
 	}
 

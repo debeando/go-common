@@ -2,55 +2,33 @@ package slow
 
 import (
 	"strings"
+	"time"
+
+	"github.com/debeando/go-common/cast"
+	"github.com/debeando/go-common/mysql/sql/parser/digest"
 )
 
-func Event(in <-chan string, out chan<- string) {
-	var buffer string
-	var isHeader bool
-	var isQuery bool
-
-	for line := range in {
-		e := ""
-		l := len(line)
-
-		if isQuery == false && strings.HasPrefix(line, "# ") {
-			isHeader = true
-		}
-
-		if isHeader == true && l >= 6 {
-			buffer += line + "\n"
-
-			s := string(line[0:6])
-			s = strings.ToUpper(s)
-
-			if s == "SELECT" || s == "INSERT" || s == "UPDATE" || s == "DELETE" {
-				isQuery = true
-			}
-		}
-
-		if l > 1 {
-			e = string(line[l-1:])
-		} else {
-			e = string(line)
-		}
-
-		if isQuery == true && e == ";" {
-			out <- strings.TrimRight(buffer, "\n")
-
-			buffer = line + "\n"
-			isHeader = false
-			isQuery = false
-		}
-	}
+type Query struct {
+	Time         time.Time
+	Timestamp    int64
+	User         string
+	ID           int64
+	QueryTime    float64
+	LockTime     float64
+	RowsSent     int64
+	RowsExamined int64
+	Raw          string
+	Digest       string
+	DigestID     string
 }
 
-func Properties(event string) map[string]string {
+func QueryParser(query string) Query {
 	property := map[string]string{}
 	whiteSpaceStart := 0
 	whiteSpaceEnd := 0
 	startQuery := 0
 
-	p := []rune(event)
+	p := []rune(query)
 	l := len(p)
 
 	for x := 0; x < l; x++ {
@@ -73,11 +51,6 @@ func Properties(event string) map[string]string {
 					p[y] = ' '
 				}
 
-				// Replace unnecessary symbols:
-				if p[y] == '@' {
-					p[y] = '_'
-				}
-
 				// Register last White Space:
 				if p[y] == ' ' {
 					whiteSpaceEnd = y
@@ -93,6 +66,7 @@ func Properties(event string) map[string]string {
 			key := string(p[whiteSpaceStart:x])
 			key = strings.TrimSpace(key)
 			key = strings.ToLower(key)
+
 			value := strings.TrimSpace(string(p[x+1 : whiteSpaceEnd]))
 
 			property[key] = value
@@ -104,9 +78,33 @@ func Properties(event string) map[string]string {
 			startQuery = x + 25
 		}
 	}
-	// Find query:
+
 	property["query"] = string(p[startQuery:l])
 	property["query"] = strings.Trim(property["query"], "\n")
+	property["user"] = UserParser(property["user@host"])
 
-	return property
+	return Query{
+		Time:         cast.StringToDateTime(property["time"], "2006-01-02T15:04:05.000000Z"),
+		ID:           cast.StringToInt64(property["id"]),
+		LockTime:     cast.StringToFloat64(property["lock_time"]),
+		QueryTime:    cast.StringToFloat64(property["query_time"]),
+		RowsExamined: cast.StringToInt64(property["rows_examined"]),
+		RowsSent:     cast.StringToInt64(property["rows_sent"]),
+		Timestamp:    cast.StringToInt64(property["timestamp"]),
+		Raw:          property["query"],
+		User:         property["user"],
+		Digest:       digest.Digest(property["query"]),
+	}
+}
+
+func UserParser(u string) string {
+	p := []rune(u)
+
+	for x := 0; x < len(p); x++ {
+		if p[x] == '[' {
+			return string(p[0:x])
+		}
+	}
+
+	return ""
 }

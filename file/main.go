@@ -1,6 +1,7 @@
 package file
 
 import (
+	"bufio"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -24,6 +25,25 @@ func Read(path string) []byte {
 
 func ReadAsString(path string) string {
 	return string(Read(path))
+}
+
+func ReadLineByLine(path string, fn func(string)) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		fn(scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func ReadExpandEnv(path string) []byte {

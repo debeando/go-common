@@ -30,6 +30,11 @@ func StringToFloat64(value string) float64 {
 	return i
 }
 
+func StringToDateTime(timestamp string, layout string) time.Time {
+	t, _ := time.Parse(layout, timestamp)
+	return t
+}
+
 func ToDateTime(timestamp string, layout string) string {
 	t, err := time.Parse(layout, timestamp)
 	if err != nil {

@@ -1,9 +1,9 @@
-package sql_test
+package digest_test
 
 import (
 	"testing"
 
-	"github.com/debeando/zenit/common/sql"
+	"github.com/debeando/go-common/mysql/sql/parser/digest"
 )
 
 var queries = []struct{ ID, Input, Expected string }{
@@ -64,6 +64,9 @@ var queries = []struct{ ID, Input, Expected string }{
 	{"string_number_alias_1",
 		`select if(foo = "3", 1, 2) as "test";`,
 		"select if(foo = '?', ?, ?) as '?';"},
+	{"string_number_alias_2",
+		`select if(foo = "3", 1, 2) as "test"  ;`,
+		"select if(foo = '?', ?, ?) as '?';"},
 	{"number_1",
 		`select 1234;`,
 		"select ?;"},
@@ -80,7 +83,7 @@ var queries = []struct{ ID, Input, Expected string }{
 		`select -0.1;`,
 		"select -?;"},
 	{"number_6",
-		`SELECT -.1;`,
+		`SELECT -.1 ;`,
 		"select -?;"},
 	{"number_7",
 		`select - 1;`,
@@ -122,13 +125,19 @@ var queries = []struct{ ID, Input, Expected string }{
 		"SELECT count(*) AS total FROM foo JOIN (SELECT DISTINCT * FROM bar WHERE fk = 1);",
 		"select count(*) as total from foo join (select distinct * from bar where fk = ?);"},
 	{"subquery_case_4",
-		"SELECT * FROM foo INNER JOIN (SELECT * FROM bar WHERE fk = 1);",
+		"SELECT * FROM foo INNER JOIN (SELECT * FROM bar WHERE fk = 1) ;",
 		"select * from foo inner join (select * from bar where fk = ?);"},
+	{"whitespace_case_1",
+		"  SELECT   *    FROM foo   ; ",
+		"select * from foo;"},
+	{"whitespace_case_2",
+		"SELECT   *\n    FROM\n    foo ;",
+		"select * from foo;"},
 }
 
 func TestDigest(t *testing.T) {
 	for _, test := range queries {
-		actual := sql.Digest(test.Input)
+		actual := digest.Digest(test.Input)
 
 		if test.Expected != actual {
 			t.Errorf("Test %s - Expected: '%s', got: '%s'.", test.ID, test.Expected, actual)

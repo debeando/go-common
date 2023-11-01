@@ -17,5 +17,4 @@ Revert replacement:
 ```bash
 go mod edit -dropreplace github.com/debeando/go-common
 go get -u
-go mod tidy
 ```

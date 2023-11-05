@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/debeando/go-common/cast"
+	"github.com/debeando/go-common/crypt"
 	"github.com/debeando/go-common/mysql/sql/parser/digest"
 )
 
@@ -83,6 +84,8 @@ func QueryParser(query string) Query {
 	property["query"] = strings.Trim(property["query"], "\n")
 	property["user"] = UserParser(property["user@host"])
 
+	digestQuery := digest.Digest(property["query"])
+
 	return Query{
 		Time:         cast.StringToDateTime(property["time"], "2006-01-02T15:04:05.000000Z"),
 		ID:           cast.StringToInt64(property["id"]),
@@ -93,7 +96,8 @@ func QueryParser(query string) Query {
 		Timestamp:    cast.StringToInt64(property["timestamp"]),
 		Raw:          property["query"],
 		User:         property["user"],
-		Digest:       digest.Digest(property["query"]),
+		Digest:       digestQuery,
+		DigestID:     crypt.MD5(digestQuery),
 	}
 }
 

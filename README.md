@@ -2,7 +2,7 @@
 
 Golang library for common projects on DeBeAndo.
 
-## Who work it?
+## Usage
 
 To point to the local version of a dependency in Go rather than the one over the web, use the replace keyword.
 

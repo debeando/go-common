@@ -17,6 +17,7 @@ type MySQL struct {
 	Port     uint16 `json:"port"`
 	Username string `json:"username"`
 	Password string `json:"password"`
+	Schema   string `json:"schema"`
 	Status   string `json:"status"`
 	Timeout  uint8  `json:"timeout"`
 }

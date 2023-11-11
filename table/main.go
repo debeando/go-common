@@ -21,15 +21,17 @@ const (
 type Alignment int
 
 type Table interface {
-	AddHeader(...any) Table
-	AddRow(...any) Table
+	Add(...any) Table
 	ColumnAlignment(int, Alignment) Table
 	Count() int
 	FilterBy(int, string) Table
 	Filtered() int
+	Header(...any) Table
 	Padding(uint) Table
 	Print()
+	SortBy(int) Table
 	Title(string) Table
+	Width() int
 }
 
 type Value any
@@ -38,11 +40,13 @@ type table struct {
 	columnAlignment map[int]Alignment
 	count           int
 	filtered        int
+	filters         map[int]string
 	header          Row
 	headerUpper     bool
 	padding         uint
 	rows            Rows
-	rowsFilters     map[int]string
+	sort            []int
+	sortColumn      int
 	title           string
 	width           int
 	widths          map[int]int
@@ -51,8 +55,8 @@ type table struct {
 func New(header ...any) Table {
 	t := table{}
 	t.columnAlignment = map[int]Alignment{}
-	t.rowsFilters = map[int]string{}
-	t.AddHeader(header...)
+	t.filters = map[int]string{}
+	t.Header(header...)
 	t.Padding(uint(2))
 
 	return &t
@@ -63,7 +67,7 @@ func (t *table) Title(title string) Table {
 	return t
 }
 
-func (t *table) AddHeader(vals ...any) Table {
+func (t *table) Header(vals ...any) Table {
 	for _, val := range vals {
 		t.header = append(t.header, val)
 	}
@@ -71,7 +75,7 @@ func (t *table) AddHeader(vals ...any) Table {
 	return t
 }
 
-func (t *table) AddRow(vals ...any) Table {
+func (t *table) Add(vals ...any) Table {
 	row := Row{}
 	for _, val := range vals {
 		row = append(row, val)
@@ -92,7 +96,13 @@ func (t *table) ColumnAlignment(index int, a Alignment) Table {
 }
 
 func (t *table) FilterBy(index int, condition string) Table {
-	t.rowsFilters[index] = condition
+	t.filters[index] = condition
+
+	return t
+}
+
+func (t *table) SortBy(index int) Table {
+	t.sortColumn = index
 
 	return t
 }
@@ -129,6 +139,7 @@ func (t *table) buildRow(index int, value string) string {
 }
 
 func (t *table) Print() {
+	t.resetVariables()
 	t.filterRows()
 	t.calculateWidths()
 	t.calculateWidth()
@@ -137,11 +148,17 @@ func (t *table) Print() {
 	t.printRows()
 }
 
+func (t *table) resetVariables() {
+	t.filtered = 0
+	t.width = 0
+	t.widths = map[int]int{}
+}
+
 func (t *table) filterRows() {
-	for index, row := range t.rows {
-		for rowIndex, rowValue := range row {
-			if condition, ok := t.rowsFilters[rowIndex]; ok {
-				if evalCondition(condition, rowValue) {
+	for index := len(t.rows) - 1; index >= 0; index-- {
+		for columnIndex, columnValue := range t.rows[index] {
+			if condition, ok := t.filters[columnIndex]; ok {
+				if !evalCondition(condition, columnValue) {
 					t.rows.Remove(index)
 					t.filtered++
 				}
@@ -151,15 +168,13 @@ func (t *table) filterRows() {
 }
 
 func (t *table) calculateWidths() {
-	t.widths = map[int]int{}
-
 	for headerIndex, headerValue := range t.header {
 		t.widths[headerIndex] = math.Max(t.widths[headerIndex], len(fmt.Sprint(headerValue)))
 	}
 
 	for _, row := range t.rows {
-		for rowIndex, rowValue := range row {
-			t.widths[rowIndex] = math.Max(t.widths[rowIndex], len(fmt.Sprint(rowValue)))
+		for columnIndex, columnValue := range row {
+			t.widths[columnIndex] = math.Max(t.widths[columnIndex], len(fmt.Sprint(columnValue)))
 		}
 	}
 }
@@ -189,6 +204,10 @@ func (t *table) Filtered() int {
 
 func (t *table) Count() int {
 	return t.count
+}
+
+func (t *table) Width() int {
+	return t.width
 }
 
 func evalCondition(condition string, value Value) bool {

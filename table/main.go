@@ -124,6 +124,10 @@ func (t *table) printRows() {
 	}
 }
 
+func (t *table) sortRows() {
+	t.rows.SortBy(t.sortColumn)
+}
+
 func (t *table) printRow(row Row) (p string) {
 	for index, value := range row {
 		p = p + t.buildRow(index, fmt.Sprint(value))
@@ -145,6 +149,7 @@ func (t *table) Print() {
 	t.calculateWidth()
 	t.printTitle()
 	t.printHeader()
+	t.sortRows()
 	t.printRows()
 }
 
@@ -222,7 +227,6 @@ func evalCondition(condition string, value Value) bool {
 }
 
 // Border('|', '+', '-')
-// SortBy
 // ColumnMin
 // ColumnMax
 // ColumnToPCT
@@ -230,3 +234,4 @@ func evalCondition(condition string, value Value) bool {
 // Summary
 // Format(column, type)
 // Limit
+// Center: marginLeft, marginTop, marginBottom, marginRight

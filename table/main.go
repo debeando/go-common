@@ -2,6 +2,9 @@ package table
 
 import (
 	"fmt"
+	"go/constant"
+	"go/token"
+	"go/types"
 	"strings"
 
 	"github.com/debeando/go-common/math"
@@ -18,33 +21,46 @@ const (
 type Alignment int
 
 type Table interface {
-	AddRow(...any) Table
 	AddHeader(...any) Table
+	AddRow(...any) Table
+	ColumnAlignment(int, Alignment) Table
+	Count() int
+	FilterBy(int, string) Table
+	Filtered() int
 	Padding(uint) Table
-	SetFirstColumnAlignment(Alignment) Table
 	Print()
+	Title(string) Table
 }
 
 type Value any
-type Row []Value
-type Rows []Row
 
 type table struct {
-	firstColumnAlignment Alignment
-	header               Row
-	headerAlignment      Alignment
-	headerUpper          bool
-	padding              uint
-	rows                 Rows
-	widths               map[int]int
+	columnAlignment map[int]Alignment
+	count           int
+	filtered        int
+	header          Row
+	headerUpper     bool
+	padding         uint
+	rows            Rows
+	rowsFilters     map[int]string
+	title           string
+	width           int
+	widths          map[int]int
 }
 
 func New(header ...any) Table {
 	t := table{}
+	t.columnAlignment = map[int]Alignment{}
+	t.rowsFilters     = map[int]string{}
 	t.AddHeader(header...)
 	t.Padding(uint(2))
 
 	return &t
+}
+
+func (t *table) Title(title string) Table {
+	t.title = title
+	return t
 }
 
 func (t *table) AddHeader(vals ...any) Table {
@@ -61,6 +77,7 @@ func (t *table) AddRow(vals ...any) Table {
 		row = append(row, val)
 	}
 	t.rows = append(t.rows, row)
+	t.count++
 	return t
 }
 
@@ -69,9 +86,21 @@ func (t *table) Padding(p uint) Table {
 	return t
 }
 
-func (t *table) SetFirstColumnAlignment(a Alignment) Table {
-	t.firstColumnAlignment = a
+func (t *table) ColumnAlignment(index int, a Alignment) Table {
+	t.columnAlignment[index] = a
 	return t
+}
+
+func (t *table) FilterBy(index int, condition string) Table {
+	t.rowsFilters[index] = condition
+
+	return t
+}
+
+func (t *table) printTitle() {
+	c := color.New(color.FgGreen)
+	c.Println(t.title)
+	c.Println(strings.Repeat("=", t.width))
 }
 
 func (t *table) printHeader() {
@@ -93,16 +122,32 @@ func (t *table) printRow(row Row) (p string) {
 }
 
 func (t *table) buildRow(index int, value string) string {
-	if index == 0 && t.firstColumnAlignment == Right {
+	if t.columnAlignment[index] == Right {
 		return t.lenOffset(value, t.widths[index]) + value + t.printPadding()
 	}
 	return value + t.lenOffset(value, t.widths[index]) + t.printPadding()
 }
 
 func (t *table) Print() {
+	t.filterRows()
 	t.calculateWidths()
+	t.calculateWidth()
+	t.printTitle()
 	t.printHeader()
 	t.printRows()
+}
+
+func (t *table) filterRows() {
+	for index, row := range t.rows {
+		for rowIndex, rowValue := range row {
+			if condition, ok := t.rowsFilters[rowIndex]; ok {
+				if evalCondition(condition, rowValue) {
+					t.rows.Remove(index)
+					t.filtered++
+				}
+			}
+		}
+	}
 }
 
 func (t *table) calculateWidths() {
@@ -113,9 +158,15 @@ func (t *table) calculateWidths() {
 	}
 
 	for _, row := range t.rows {
-		for columnIndex, columnValue := range row {
-			t.widths[columnIndex] = math.Max(t.widths[columnIndex], len(fmt.Sprint(columnValue)))
+		for rowIndex, rowValue := range row {
+			t.widths[rowIndex] = math.Max(t.widths[rowIndex], len(fmt.Sprint(rowValue)))
 		}
+	}
+}
+
+func (t *table) calculateWidth() {
+	for _, width := range t.widths {
+		t.width = t.width + width + int(t.padding)
 	}
 }
 
@@ -131,3 +182,33 @@ func (t *table) lenOffset(s string, w int) string {
 func (t *table) printPadding() string {
 	return strings.Repeat(" ", int(t.padding))
 }
+
+func (t *table) Filtered() int {
+	return t.filtered
+}
+
+func (t *table) Count() int {
+	return t.count
+}
+
+func evalCondition(condition string, value Value) bool {
+	fs := token.NewFileSet()
+	tv, _ := types.Eval(
+		fs,
+		nil,
+		token.NoPos,
+		fmt.Sprintf("%v %s", value, condition))
+
+	return constant.BoolVal(tv.Value)
+}
+
+
+// Border('|', '+', '-')
+// SortBy
+// ColumnMin
+// ColumnMax
+// ColumnToPCT
+// ColumnSum
+// Summary
+// Format(column, type)
+// Limit

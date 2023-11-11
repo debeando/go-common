@@ -51,7 +51,7 @@ type table struct {
 func New(header ...any) Table {
 	t := table{}
 	t.columnAlignment = map[int]Alignment{}
-	t.rowsFilters     = map[int]string{}
+	t.rowsFilters = map[int]string{}
 	t.AddHeader(header...)
 	t.Padding(uint(2))
 
@@ -201,7 +201,6 @@ func evalCondition(condition string, value Value) bool {
 
 	return constant.BoolVal(tv.Value)
 }
-
 
 // Border('|', '+', '-')
 // SortBy

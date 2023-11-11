@@ -1,12 +1,12 @@
 package terminal
 
 import (
-	"fmt"
 	"bufio"
 	"bytes"
-	"os"
-	"math"
 	"errors"
+	"fmt"
+	"math"
+	"os"
 
 	"golang.org/x/sys/unix"
 )

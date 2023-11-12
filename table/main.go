@@ -18,6 +18,8 @@ const (
 	Right
 )
 
+const DOWN_ARROW = "\u2193"
+
 type Alignment int
 
 type Table interface {
@@ -103,6 +105,7 @@ func (t *table) FilterBy(index int, condition string) Table {
 
 func (t *table) SortBy(index int) Table {
 	t.sortColumn = index
+	t.header[index] = fmt.Sprintf("%s%s", t.header[index], DOWN_ARROW)
 
 	return t
 }

@@ -6,6 +6,7 @@ import (
 	"go/token"
 	"go/types"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/debeando/go-common/math"
 
@@ -177,7 +178,7 @@ func (t *table) filterRows() {
 
 func (t *table) calculateWidths() {
 	for headerIndex, headerValue := range t.header {
-		t.widths[headerIndex] = math.Max(t.widths[headerIndex], len(fmt.Sprint(headerValue)))
+		t.widths[headerIndex] = len(fmt.Sprint(headerValue))
 	}
 
 	for _, row := range t.rows {
@@ -194,7 +195,7 @@ func (t *table) calculateWidth() {
 }
 
 func (t *table) lenOffset(s string, w int) string {
-	l := w - len(s)
+	l := w - utf8.RuneCountInString(s)
 	if l < 0 {
 		return ""
 	}

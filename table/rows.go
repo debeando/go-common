@@ -31,7 +31,5 @@ func (r *Rows) SortBy(i int) {
 		default:
 			return false // return unmodified
 		}
-
-		return true
 	})
 }

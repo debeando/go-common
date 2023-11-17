@@ -65,6 +65,14 @@ func Height() int {
 	return int(ws.Row)
 }
 
+func Cursor(x, y int) {
+	fmt.Printf("\x1B[%d;%dH", x, y)
+}
+
+func Refresh(f func()) {
+
+}
+
 func getWinsize() (*unix.Winsize, error) {
 	ws, err := unix.IoctlGetWinsize(int(os.Stdout.Fd()), unix.TIOCGWINSZ)
 	if err != nil {

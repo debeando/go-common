@@ -119,7 +119,6 @@ func (r *RDS) Parameters(name string) (Parameters, error) {
 		params,
 		func(page *rds.DescribeDBParametersOutput, lastPage bool) bool {
 			pageNum++
-			// fmt.Println(page)
 			p.New(page)
 
 			return pageNum <= 3
@@ -128,7 +127,6 @@ func (r *RDS) Parameters(name string) (Parameters, error) {
 		return Parameters{}, err
 	}
 
-	// return *p.New(result), nil
 	return p, nil
 }
 

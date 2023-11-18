@@ -1,3 +1,3 @@
 package table
 
-type Row []Value
+type Row []Field

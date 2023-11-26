@@ -147,7 +147,7 @@ func Refresh(wait int, f func()) {
 		ScreenRestore()
 		defer CursorRestore()
 
-		CursorSet(0,0)
+		CursorSet(0, 0)
 		Flush()
 		f()
 		time.Sleep(time.Duration(wait) * time.Second)

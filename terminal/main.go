@@ -132,7 +132,7 @@ func CursorEraseToBeginningScreen() {
 	Output.WriteString(CURSOR_ERASE_FBS)
 }
 
-func Refresh(wait int, f func()) {
+func Refresh(wait int, f func() bool) {
 	Reset()
 	Clear()
 	CursorHide()
@@ -149,7 +149,9 @@ func Refresh(wait int, f func()) {
 
 		CursorSet(0, 0)
 		Flush()
-		f()
+		if !f() {
+			break
+		}
 		time.Sleep(time.Duration(wait) * time.Second)
 	}
 

@@ -44,10 +44,10 @@ func (f *Field) Truncate(t int) {
 func (f *Field) Clear() {
 	if f.IsString() {
 		t := f.ToString()
-		t  = strings.TrimSpace(t)
-		t  = strings.ReplaceAll(t, "\n", " ")
-		t  = strings.ReplaceAll(t, "\r", " ")
-		t  = strings.ReplaceAll(t, "  ", " ")
+		t = strings.TrimSpace(t)
+		t = strings.ReplaceAll(t, "\n", " ")
+		t = strings.ReplaceAll(t, "\r", " ")
+		t = strings.ReplaceAll(t, "  ", " ")
 
 		(*f).Value = t
 	}

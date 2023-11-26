@@ -15,9 +15,9 @@ func (r *Rows) Remove(i int) {
 
 func (r *Rows) SortBy(i int) {
 	sort.Slice((*r), func(x, y int) bool {
-		t := reflect.TypeOf((*r)[x][i])
-		v1 := reflect.ValueOf((*r)[x][i])
-		v2 := reflect.ValueOf((*r)[y][i])
+		t := reflect.TypeOf((*r)[x][i].Value)
+		v1 := reflect.ValueOf((*r)[x][i].Value)
+		v2 := reflect.ValueOf((*r)[y][i].Value)
 
 		switch t.Name() {
 		case "int":

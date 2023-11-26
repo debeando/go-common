@@ -14,7 +14,7 @@ func TestArgs(t *testing.T) {
 	os.Args = append(os.Args, "--bar=two")
 	os.Args = append(os.Args, "--baz")
 
-	assert.Len(t, cli.GetArgs(), 6)
+	assert.Len(t, cli.GetArgs(), 7)
 }
 
 func TestExecutableName(t *testing.T) {

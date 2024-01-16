@@ -156,7 +156,7 @@ func (r *RDS) Delete() (err error) {
 	}
 
 	_, err = r.Client.DeleteDBInstance(input)
-	return
+	return err
 }
 
 func (r *RDS) DescribeOld() {

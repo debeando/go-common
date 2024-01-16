@@ -1,6 +1,13 @@
 name: Go
 
 on: [push]
+
+env:
+  MYSQL_TEST_USER: gotest
+  MYSQL_TEST_PASS: test
+  MYSQL_TEST_ADDR: 127.0.0.1:3306
+  MYSQL_TEST_CONCURRENT: 1
+
 jobs:
   test:
     name: Check code quality and run tests
@@ -12,6 +19,23 @@ jobs:
       uses: actions/setup-go@v3
       with:
         go-version: 1.21
+
+    - name: Setup MySQL Server
+      uses: shogo82148/actions-setup-mysql@v1.21.0
+      with:
+        mysql-version: 8.0
+        user: ${{ env.MYSQL_TEST_USER }}
+        password: ${{ env.MYSQL_TEST_PASS }}
+        my-cnf: |
+          innodb_log_file_size=256MB
+          innodb_buffer_pool_size=512MB
+          max_allowed_packet=16MB
+          max_connections=50
+          local_infile=1
+          performance_schema=on
+
+    - name: Setup database
+      run: mysql --user 'root' --host '127.0.0.1' -e 'CREATE DATABASE gotest;'
 
     - name: Get all dependencies
       run: go get -u ./...

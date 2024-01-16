@@ -18,24 +18,41 @@ const (
 )
 
 type ProxySQL struct {
-	mysql.MySQL
 	Connection *mysql.Connection
-	Servers    []Server
+	Host       string   `yaml:"host"`
+	Password   string   `yaml:"password"`
+	Port       uint16   `yaml:"port"`
+	Schema     string   `yaml:"schema"`
+	Servers    []Server `yaml:"servers"`
+	Status     string   `yaml:"status"`
+	Timeout    uint8    `yaml:"timeout"`
+	Username   string   `yaml:"username"`
 }
 
 type Server struct {
-	HostgroupID       uint8  `json:"hostgroup_id"`
-	Hostname          string `json:"hostname"`
-	MaxConnections    uint16 `json:"max_connections"`
-	MaxReplicationLag uint16 `json:"max_replication_lag"`
-	Status            string `json:"status"`
-	Weight            uint16 `json:"weight"`
+	HostgroupID       uint8  `yaml:"hostgroup_id"`
+	Hostname          string `yaml:"hostname"`
+	MaxConnections    uint16 `yaml:"max_connections"`
+	MaxReplicationLag uint16 `yaml:"max_replication_lag"`
+	Status            string `yaml:"status"`
+	Weight            uint16 `yaml:"weight"`
 }
 
 func (p *ProxySQL) AddServer(s Server) int {
 	p.Servers = append(p.Servers, s)
 
 	return 0
+}
+
+func (p *ProxySQL) DSN() string {
+	return fmt.Sprintf(
+		"%s:%s@tcp(%s:%d)/?timeout=%ds",
+		p.Username,
+		p.Password,
+		p.Host,
+		p.Port,
+		p.Timeout,
+	)
 }
 
 func (p *ProxySQL) GetStatusServer(index int) string {

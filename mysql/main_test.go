@@ -1,59 +1,37 @@
 package mysql_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/debeando/go-common/mysql"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestParseValue(t *testing.T) {
-	if value, ok := mysql.ParseNumberValue("yes"); !ok || value != 1 {
-		t.Error("Expected: Found Parse and value = 1.")
+func TestConnection(t *testing.T) {
+	m := mysql.MySQL{
+		Host:     "127.0.0.1",
+		Port:     3306,
+		Username: os.Getenv("MYSQL_TEST_USER"),
+		Password: os.Getenv("MYSQL_TEST_PASS"),
 	}
 
-	if value, ok := mysql.ParseNumberValue("Yes"); !ok || value != 1 {
-		t.Error("Expected: Found Parse and value = 1.")
-	}
-
-	if value, ok := mysql.ParseNumberValue("YES"); !ok || value != 1 {
-		t.Error("Expected: Found Parse and value = 1.")
-	}
-
-	if value, ok := mysql.ParseNumberValue("no"); !ok || value != 0 {
-		t.Error("Expected: Found Parse and value = 0.")
-	}
-
-	if value, ok := mysql.ParseNumberValue("No"); !ok || value != 0 {
-		t.Error("Expected: Found Parse and value = 0.")
-	}
-
-	if value, ok := mysql.ParseNumberValue("NO"); !ok || value != 0 {
-		t.Error("Expected: Found Parse and value = 0.")
-	}
-
-	if value, ok := mysql.ParseNumberValue("ON"); !ok || value != 1 {
-		t.Error("Expected: Found Parse and value = 1.")
-	}
-
-	if value, ok := mysql.ParseNumberValue("OFF"); !ok || value != 0 {
-		t.Error("Expected: Found Parse and value = 0.")
-	}
-
-	if value, ok := mysql.ParseNumberValue("true"); ok && value == 0 {
-		t.Error("Expected: Imposible Parse.")
-	}
-
-	if value, ok := mysql.ParseNumberValue("1234567890"); !ok || value != 1234567890 {
-		t.Error("Expected: Found Parse and value = 1234567890.")
-	}
+	c := mysql.New("test", m.DSN())
+	assert.Empty(t, c.Instance, nil)
+	e := c.Connect()
+	assert.NoError(t, e)
+	assert.NotEmpty(t, c.Instance, nil)
 }
 
-func TestClearUser(t *testing.T) {
-	user := "test[test] @ [127.0.0.1]"
-	expected := "test"
-	result := mysql.ClearUser(user)
+func TestGet(t *testing.T) {
+	c := mysql.Get("test")
+	assert.NotEmpty(t, c.Instance, nil)
+}
 
-	if result != expected {
-		t.Errorf("Expected: '%s', got: '%s'.", expected, result)
-	}
+func TestClose(t *testing.T) {
+	c := mysql.Get("test")
+	assert.NotEmpty(t, c.Instance, nil)
+	c.Close()
+	assert.Empty(t, c.Instance, nil)
 }

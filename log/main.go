@@ -8,6 +8,10 @@ type Fields map[string]interface{}
 
 type Level uint32
 
+type Formatter struct {
+	logrus.TextFormatter
+}
+
 const (
 	PanicLevel Level = iota
 	FatalLevel
@@ -17,6 +21,13 @@ const (
 	DebugLevel
 	TraceLevel
 )
+
+func UseTimestamp() {
+	logrus.SetFormatter(&Formatter{logrus.TextFormatter{
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05",
+	}})
+}
 
 func SetLevel(level Level) {
 	logrus.SetLevel(logrus.Level(level))

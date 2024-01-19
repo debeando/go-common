@@ -1,6 +1,9 @@
 package rds
 
 import (
+	"errors"
+
+	"github.com/debeando/go-common/env"
 	"github.com/debeando/go-common/retry"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -9,26 +12,33 @@ import (
 )
 
 type RDS struct {
-	Client     *rds.RDS `json:"-"`          // AWS RDS connection.
-	Instance   string   `json:"instance"`   // New instance (replica).
-	Class      string   `json:"class"`      // New instance class.
-	Region     string   `json:"region"`     // AWS region account.
-	Primary    string   `json:"primary"`    // Source instance (primary).
-	Status     string   `json:"status"`     // New instance status.
-	Endpoint   string   `json:"endpoint"`   // New instance endpoint.
-	Protection bool     `json:"protection"` // New instance is set to deletion protection.
-	Port       uint16   `json:"port"`       // New instance port of endpoint.
-	Zone       string   `json:"zone"`       // New instance Availability Zone.
+	Client     *rds.RDS `json:"-"          yaml:"-"`          // AWS RDS connection.
+	Instance   string   `json:"instance"   yaml:"instance"`   // New instance (replica).
+	Class      string   `json:"class"      yaml:"class"`      // New instance class.
+	Region     string   `json:"region"     yaml:"region"`     // AWS region account.
+	Primary    string   `json:"primary"    yaml:"primary"`    // Source instance (primary).
+	Status     string   `json:"status"     yaml:"status"`     // New instance status.
+	Endpoint   string   `json:"endpoint"   yaml:"endpoint"`   // New instance endpoint.
+	Protection bool     `json:"protection" yaml:"protection"` // New instance is set to deletion protection.
+	Port       uint16   `json:"port"       yaml:"port"`       // New instance port of endpoint.
+	Zone       string   `json:"zone"       yaml:"zone"`       // New instance Availability Zone.
+	Session    *session.Session
 }
 
 func (r *RDS) Init() (err error) {
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(r.Region),
-	})
+	if !env.Exist("AWS_REGION") {
+		return errors.New("You must specify a region. Define value of environment variable AWS_REGION.")
+	}
 
-	r.Client = rds.New(sess)
+	r.Session = session.Must(session.NewSession())
+
+	r.Client = rds.New(r.Session)
 
 	return
+}
+
+func (r *RDS) GetSessionRegion() string {
+	return aws.StringValue(r.Session.Config.Region)
 }
 
 func (r *RDS) List() Instances {

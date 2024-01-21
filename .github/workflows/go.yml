@@ -7,11 +7,33 @@ env:
   MYSQL_TEST_PASS: test
   MYSQL_TEST_ADDR: 127.0.0.1:3306
   MYSQL_TEST_CONCURRENT: 1
+  PROXYSQL_TEST_ADDR: 127.0.0.1:3307
+  PROXYSQL_ADMIN_TEST_ADDR: 127.0.0.1:6032
 
 jobs:
   test:
     name: Check code quality and run tests
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ env.MYSQL_TEST_PASS }}
+          MYSQL_USER: ${{ env.MYSQL_TEST_USER }}
+          MYSQL_PASSWORD: ${{ env.MYSQL_TEST_PASS }}
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+      proxysql:
+        image: ghcr.io/debeando/docker-proxysql
+        ports:
+          - 3307:3306
+          - 6032:6032
+
     steps:
     - uses: actions/checkout@v3
 
@@ -19,23 +41,6 @@ jobs:
       uses: actions/setup-go@v3
       with:
         go-version: 1.21
-
-    - name: Setup MySQL Server
-      uses: shogo82148/actions-setup-mysql@v1.21.0
-      with:
-        mysql-version: 8.0
-        user: ${{ env.MYSQL_TEST_USER }}
-        password: ${{ env.MYSQL_TEST_PASS }}
-        my-cnf: |
-          innodb_log_file_size=256MB
-          innodb_buffer_pool_size=512MB
-          max_allowed_packet=16MB
-          max_connections=50
-          local_infile=1
-          performance_schema=on
-
-    - name: Setup database
-      run: mysql --user 'root' --host '127.0.0.1' -e 'CREATE DATABASE gotest;'
 
     - name: Get all dependencies
       run: go get -u ./...

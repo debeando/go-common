@@ -150,6 +150,7 @@ func (c *Connection) FetchOne(query string) any {
 	return val
 }
 
+// QueryIterator
 func (c *Connection) FetchAll(query string, fn func(map[string]string)) error {
 	if c.Instance == nil {
 		return errors.New("The instance is empty.")

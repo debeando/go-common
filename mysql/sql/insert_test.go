@@ -3,7 +3,7 @@ package sql_test
 import (
 	"testing"
 
-	"github.com/debeando/zenit/common/sql"
+	"github.com/debeando/go-common/mysql/sql"
 )
 
 func TestEmpty(t *testing.T) {

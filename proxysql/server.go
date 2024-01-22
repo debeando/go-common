@@ -2,21 +2,23 @@ package proxysql
 
 import (
 	"fmt"
+
+	"github.com/debeando/go-common/mysql"
 )
 
 type Server struct {
-	ProxySQL          *ProxySQL `yaml:"-"`
-	HostgroupID       uint8     `yaml:"hostgroup_id"`
-	Hostname          string    `yaml:"hostname"`
-	MaxConnections    uint16    `yaml:"max_connections"`
-	MaxReplicationLag uint16    `yaml:"max_replication_lag"`
-	Port              uint16    `yaml:"port"`
-	Status            string    `yaml:"status"`
-	Weight            uint16    `yaml:"weight"`
+	Connection        *mysql.Connection `yaml:"-"`
+	HostgroupID       uint8             `yaml:"hostgroup_id"`
+	Hostname          string            `yaml:"hostname"`
+	MaxConnections    uint16            `yaml:"max_connections"`
+	MaxReplicationLag uint16            `yaml:"max_replication_lag"`
+	Port              uint16            `yaml:"port"`
+	Status            string            `yaml:"status"`
+	Weight            uint16            `yaml:"weight"`
 }
 
-func (s *Server) Save() error {
-	_, err := s.ProxySQL.Connection.Instance.Query(s.QueryInsert())
+func (s *Server) Insert() error {
+	_, err := s.Connection.Instance.Query(s.QueryInsert())
 	if err != nil {
 		return err
 	}
@@ -25,7 +27,7 @@ func (s *Server) Save() error {
 }
 
 func (s *Server) Update() error {
-	_, err := s.ProxySQL.Connection.Instance.Query(s.QueryUpdate())
+	_, err := s.Connection.Instance.Query(s.QueryUpdate())
 	if err != nil {
 		return err
 	}
@@ -34,7 +36,7 @@ func (s *Server) Update() error {
 }
 
 func (s *Server) Fetcher() error {
-	return s.ProxySQL.Connection.Instance.QueryRow(s.QuerySelect()).Scan(
+	return s.Connection.Instance.QueryRow(s.QuerySelect()).Scan(
 		&s.HostgroupID,
 		&s.Hostname,
 		&s.Port,
@@ -45,7 +47,7 @@ func (s *Server) Fetcher() error {
 }
 
 func (s *Server) Delete() error {
-	_, err := s.ProxySQL.Connection.Instance.Query(s.QueryDelete())
+	_, err := s.Connection.Instance.Query(s.QueryDelete())
 	if err != nil {
 		return err
 	}

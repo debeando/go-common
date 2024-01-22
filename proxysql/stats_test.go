@@ -19,12 +19,12 @@ func TestStatsConnectionPoolFetcher(t *testing.T) {
 		Status:            proxysql.ONLINE,
 		Weight:            uint16(1),
 	})
-	p.Servers.First().Save()
+	p.Servers.First().Insert()
 	p.ServersLoadToRunTime()
 	p.ServersSaveToDisk()
 
-	p.Stats.ProxySQL = &p
-	p.Stats.ConnectionPool.ProxySQL = &p
+	p.Stats.Connection = p.Connection
+	p.Stats.ConnectionPool.Connection = p.Connection
 	p.Stats.ConnectionPool.Fetcher()
 
 	assert.Equal(t, p.Stats.ConnectionPool.HostgroupID, uint8(10))

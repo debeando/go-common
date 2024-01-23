@@ -20,6 +20,15 @@ type ProxySQL struct {
 }
 
 func (p *ProxySQL) AddServer(s Server) {
-	s.ProxySQL = p
+	s.Connection = p.Connection
 	p.Servers.Add(s)
+}
+
+func (p *ProxySQL) Link() {
+	for i, _ := range p.Servers {
+		p.Servers[i].Connection = p.Connection
+	}
+
+	p.Stats.Connection = p.Connection
+	p.Stats.ConnectionPool.Connection = p.Connection
 }

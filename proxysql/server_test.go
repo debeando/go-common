@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestServerSave(t *testing.T) {
+func TestServerInsert(t *testing.T) {
 	s := proxysql.Server{
 		HostgroupID:       uint8(30),
 		Hostname:          "127.0.0.1",
@@ -18,8 +18,8 @@ func TestServerSave(t *testing.T) {
 		Status:            proxysql.ONLINE,
 		Weight:            uint16(1),
 	}
-	s.ProxySQL = &p
-	assert.NoError(t, s.Save())
+	s.Connection = p.Connection
+	assert.NoError(t, s.Insert())
 }
 
 func TestServerUpdate(t *testing.T) {
@@ -32,7 +32,7 @@ func TestServerUpdate(t *testing.T) {
 		Status:            proxysql.OFFLINE_SOFT,
 		Weight:            uint16(1),
 	}
-	s.ProxySQL = &p
+	s.Connection = p.Connection
 	assert.NoError(t, s.Update())
 }
 
@@ -58,7 +58,7 @@ func TestServerDelete(t *testing.T) {
 		HostgroupID: uint8(30),
 		Hostname:    "127.0.0.1",
 	}
-	s.ProxySQL = &p
+	s.Connection = p.Connection
 	assert.NoError(t, s.Delete())
 }
 

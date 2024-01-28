@@ -4,41 +4,32 @@ import (
 	"errors"
 
 	"github.com/debeando/go-common/env"
-	"github.com/debeando/go-common/retry"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/aws/aws-sdk-go/service/rds/rdsiface"
 )
 
 type RDS struct {
-	Client     *rds.RDS `json:"-"          yaml:"-"`          // AWS RDS connection.
-	Instance   string   `json:"instance"   yaml:"instance"`   // New instance (replica).
-	Class      string   `json:"class"      yaml:"class"`      // New instance class.
-	Region     string   `json:"region"     yaml:"region"`     // AWS region account.
-	Primary    string   `json:"primary"    yaml:"primary"`    // Source instance (primary).
-	Status     string   `json:"status"     yaml:"status"`     // New instance status.
-	Endpoint   string   `json:"endpoint"   yaml:"endpoint"`   // New instance endpoint.
-	Protection bool     `json:"protection" yaml:"protection"` // New instance is set to deletion protection.
-	Port       uint16   `json:"port"       yaml:"port"`       // New instance port of endpoint.
-	Zone       string   `json:"zone"       yaml:"zone"`       // New instance Availability Zone.
-	Session    *session.Session
+	Client     rdsiface.RDSAPI
+	Identifier string
+	Instance   Instance
+	Region     string
+	CheckMode  bool
 }
 
-func (r *RDS) Init() (err error) {
+func (r *RDS) Init() error {
 	if !env.Exist("AWS_REGION") {
 		return errors.New("You must specify a region. Define value of environment variable AWS_REGION.")
 	}
 
-	r.Session = session.Must(session.NewSession())
+	sess := session.Must(session.NewSession())
 
-	r.Client = rds.New(r.Session)
+	r.Region = aws.StringValue(sess.Config.Region)
+	r.Client = rds.New(sess)
 
-	return
-}
-
-func (r *RDS) GetSessionRegion() string {
-	return aws.StringValue(r.Session.Config.Region)
+	return nil
 }
 
 func (r *RDS) List() Instances {
@@ -53,18 +44,21 @@ func (r *RDS) List() Instances {
 	return instances
 }
 
-func (r *RDS) Describe(identifier string) (Instance, error) {
+func (r *RDS) Load() error {
 	instance := Instance{}
+
 	input := &rds.DescribeDBInstancesInput{
-		DBInstanceIdentifier: aws.String(identifier),
+		DBInstanceIdentifier: aws.String(r.Identifier),
 	}
 
 	result, err := r.Client.DescribeDBInstances(input)
 	if err != nil {
-		return Instance{}, err
+		return err
 	}
 
-	return *instance.New(result.DBInstances[0]), nil
+	r.Instance = *instance.New(result.DBInstances[0])
+
+	return nil
 }
 
 func (r *RDS) Logs(identifier, filename string) (Logs, error) {
@@ -140,92 +134,39 @@ func (r *RDS) Parameters(name string) (Parameters, error) {
 	return p, nil
 }
 
-func (r *RDS) Create() (err error) {
+func (r *RDS) CreateReplica(instance Instance) error {
+	if r.CheckMode {
+		return nil
+	}
+
 	input := &rds.CreateDBInstanceReadReplicaInput{
 		AutoMinorVersionUpgrade:         aws.Bool(false),
-		AvailabilityZone:                aws.String(r.Zone),
-		DBInstanceClass:                 aws.String(r.Class),
-		DBInstanceIdentifier:            aws.String(r.Instance),
+		AvailabilityZone:                aws.String(instance.AvailabilityZone),
+		DBInstanceClass:                 aws.String(instance.Class),
+		DBInstanceIdentifier:            aws.String(r.Identifier),
 		DeletionProtection:              aws.Bool(false),
 		EnableCustomerOwnedIp:           aws.Bool(false),
 		EnableIAMDatabaseAuthentication: aws.Bool(false),
 		EnablePerformanceInsights:       aws.Bool(false),
 		MultiAZ:                         aws.Bool(false),
 		PubliclyAccessible:              aws.Bool(false),
-		SourceDBInstanceIdentifier:      aws.String(r.Primary),
+		SourceDBInstanceIdentifier:      aws.String(instance.Identifier),
 	}
 
-	_, err = r.Client.CreateDBInstanceReadReplica(input)
-	return
-}
-
-func (r *RDS) Delete() (err error) {
-	input := &rds.DeleteDBInstanceInput{
-		DBInstanceIdentifier: aws.String(r.Instance),
-		SkipFinalSnapshot:    aws.Bool(true),
-	}
-
-	_, err = r.Client.DeleteDBInstance(input)
+	_, err := r.Client.CreateDBInstanceReadReplica(input)
 	return err
 }
 
-func (r *RDS) DescribeOld() {
-	r.Endpoint = ""
-	r.Status = ""
-
-	input := &rds.DescribeDBInstancesInput{
-		DBInstanceIdentifier: aws.String(r.Instance),
+func (r *RDS) Delete() error {
+	if r.CheckMode {
+		return nil
 	}
 
-	result, err := r.Client.DescribeDBInstances(input)
-	if err != nil {
-		return
+	input := &rds.DeleteDBInstanceInput{
+		DBInstanceIdentifier: aws.String(r.Identifier),
+		SkipFinalSnapshot:    aws.Bool(true),
 	}
 
-	r.Status = *result.DBInstances[0].DBInstanceStatus
-	r.Protection = *result.DBInstances[0].DeletionProtection
-
-	if result.DBInstances[0].ReadReplicaSourceDBInstanceIdentifier != nil {
-		r.Primary = *result.DBInstances[0].ReadReplicaSourceDBInstanceIdentifier
-	}
-
-	if result.DBInstances[0].Endpoint != nil {
-		r.Endpoint = *result.DBInstances[0].Endpoint.Address
-		r.Port = uint16(*result.DBInstances[0].Endpoint.Port)
-	}
-}
-
-func (r *RDS) Exist() bool {
-	r.DescribeOld()
-	return len(r.Endpoint) > 0 && len(r.Status) > 0
-}
-
-func (r *RDS) IsAvailable() bool {
-	r.DescribeOld()
-	return len(r.Endpoint) > 0 && r.Status == "available"
-}
-
-func (r *RDS) IsPrimary() bool {
-	return r.IsAvailable() && len(r.Primary) == 0
-}
-
-func (r *RDS) IsReplica() bool {
-	return r.IsAvailable() && len(r.Primary) > 0
-}
-
-func (r *RDS) IsNotAvailable() bool {
-	r.DescribeOld()
-	return len(r.Endpoint) == 0 && len(r.Status) == 0
-}
-
-func (r *RDS) WaitUntilAvailable() error {
-	return retry.Do(30, 60, func() bool {
-		return r.IsAvailable()
-	})
-}
-
-func (r *RDS) WaitUntilUnavailable() error {
-	return retry.Do(30, 60, func() bool {
-		return r.IsNotAvailable()
-	})
+	_, err := r.Client.DeleteDBInstance(input)
+	return err
 }

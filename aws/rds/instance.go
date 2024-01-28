@@ -21,6 +21,7 @@ type Instance struct {
 	PerformanceInsights bool
 	Port                int64
 	Public              bool
+	ReplicaIdentifier   string
 	Status              string
 	Tags                Tags
 	Username            string
@@ -37,13 +38,12 @@ func (i *Instance) New(instance *rds.DBInstance) *Instance {
 		Class:               aws.StringValue(instance.DBInstanceClass),
 		Created:             instance.InstanceCreateTime,
 		DeletionProtection:  aws.BoolValue(instance.DeletionProtection),
-		Endpoint:            aws.StringValue(instance.Endpoint.Address),
 		Engine:              aws.StringValue(instance.Engine),
 		Identifier:          aws.StringValue(instance.DBInstanceIdentifier),
 		MultiAZ:             aws.BoolValue(instance.MultiAZ),
 		PerformanceInsights: aws.BoolValue(instance.PerformanceInsightsEnabled),
-		Port:                aws.Int64Value(instance.Endpoint.Port),
 		Public:              aws.BoolValue(instance.PubliclyAccessible),
+		ReplicaIdentifier:   aws.StringValue(instance.ReadReplicaSourceDBInstanceIdentifier),
 		Status:              aws.StringValue(instance.DBInstanceStatus),
 		Username:            aws.StringValue(instance.MasterUsername),
 		Version:             aws.StringValue(instance.EngineVersion),
@@ -54,6 +54,11 @@ func (i *Instance) New(instance *rds.DBInstance) *Instance {
 		Tags: *tags.New(instance.TagList),
 	}
 
+	if instance.Endpoint != nil {
+		i.Endpoint = aws.StringValue(instance.Endpoint.Address)
+		i.Port = aws.Int64Value(instance.Endpoint.Port)
+	}
+
 	return i
 }
 
@@ -62,4 +67,24 @@ func (i *Instance) JSON() (r map[string]interface{}) {
 	json.Unmarshal(t, &r)
 
 	return r
+}
+
+func (i *Instance) Exist() bool {
+	return len(i.Endpoint) > 0 && len(i.Status) > 0
+}
+
+func (i *Instance) IsAvailable() bool {
+	return len(i.Endpoint) > 0 && i.Status == "available"
+}
+
+func (i *Instance) IsPrimary() bool {
+	return i.IsAvailable() && len(i.ReplicaIdentifier) == 0
+}
+
+func (i *Instance) IsReplica() bool {
+	return i.IsAvailable() && len(i.ReplicaIdentifier) > 0
+}
+
+func (i *Instance) IsNotAvailable() bool {
+	return len(i.Endpoint) == 0 && len(i.Status) == 0
 }

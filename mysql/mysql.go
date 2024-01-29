@@ -24,3 +24,13 @@ func (m *MySQL) DSN() string {
 		m.Timeout,
 	)
 }
+
+func (m *MySQL) DSNSecret() string {
+	return fmt.Sprintf(
+		"%s:***@tcp(%s:%d)/?timeout=%ds",
+		m.Username,
+		m.Host,
+		m.Port,
+		m.Timeout,
+	)
+}

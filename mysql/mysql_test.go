@@ -18,3 +18,14 @@ func TestDSN(t *testing.T) {
 
 	assert.Equal(t, m.DSN(), "sakila:test@tcp(127.0.0.1:3306)/?timeout=30s")
 }
+
+func TestDSNSecret(t *testing.T) {
+	m := mysql.MySQL{}
+	m.Host = "127.0.0.1"
+	m.Password = "test"
+	m.Port = 3306
+	m.Timeout = 30
+	m.Username = "sakila"
+
+	assert.Equal(t, m.DSNSecret(), "sakila:***@tcp(127.0.0.1:3306)/?timeout=30s")
+}

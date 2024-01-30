@@ -16,7 +16,7 @@ func TestStatsConnectionPoolFetcher(t *testing.T) {
 		MaxConnections:    uint16(100),
 		MaxReplicationLag: uint16(60),
 		Port:              uint16(3307),
-		Status:            proxysql.ONLINE,
+		Status:            proxysql.OFFLINE_SOFT,
 		Weight:            uint16(1),
 	})
 	p.Servers.First().Insert()
@@ -30,6 +30,7 @@ func TestStatsConnectionPoolFetcher(t *testing.T) {
 	assert.Equal(t, p.Stats.ConnectionPool.HostgroupID, uint8(10))
 	assert.Equal(t, p.Stats.ConnectionPool.Hostname, "127.0.0.1")
 	assert.Equal(t, p.Stats.ConnectionPool.Port, uint16(3307))
+	assert.Equal(t, p.Stats.ConnectionPool.Status, proxysql.OFFLINE_SOFT)
 
 	p.Servers.First().Delete()
 	p.ServersLoadToRunTime()

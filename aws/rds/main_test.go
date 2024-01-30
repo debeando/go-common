@@ -27,10 +27,8 @@ func TestLoad(t *testing.T) {
 			DescribeDBInstancesOutput: mockedOutput,
 		},
 	}
-
 	r.Load()
 
-	t.Log(r.Instance.Status)
-
-	assert.True(t, true)
+	assert.Equal(t, r.Instance.Status, "creating")
+	assert.Equal(t, r.Instance.Identifier, "node01")
 }

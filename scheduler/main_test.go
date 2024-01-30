@@ -55,3 +55,11 @@ func TestDo(t *testing.T) {
 	}
 	assert.False(t, time.BetweenNow(start, end))
 }
+
+func TestDelta(t *testing.T) {
+	time.Now = func() mock.Time {
+		return mock.Date(0, 1, 1, 20, 01, 40, 000000000, mock.UTC)
+	}
+
+	assert.Equal(t, scheduler.DeltaSeconds(), mock.Duration(20))
+}

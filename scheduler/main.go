@@ -30,6 +30,8 @@ func (s *Scheduler) Do(start func(), end func()) (err error) {
 	}
 
 	for {
+		time.Sleep(DeltaSeconds() * time.Second)
+
 		if temp.BetweenNow(s.start, s.end) {
 			start()
 		} else {
@@ -38,4 +40,8 @@ func (s *Scheduler) Do(start func(), end func()) (err error) {
 
 		time.Sleep(time.Duration(s.Interval) * time.Second)
 	}
+}
+
+func DeltaSeconds() time.Duration {
+	return time.Duration(60 - temp.Now().Second())
 }

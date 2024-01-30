@@ -1,18 +1,14 @@
 package proxysql
 
 import (
+	"fmt"
+
 	"github.com/debeando/go-common/mysql"
 )
 
-type Stats struct {
-	Connection     *mysql.Connection
-	ConnectionPool ConnectionPool
-}
-
-const QueryConnectionPool = "SELECT hostgroup, srv_host, srv_port, status, ConnUsed, ConnFree, ConnOK, ConnERR, MaxConnUsed, Queries, Queries_GTID_sync, Bytes_data_sent, Bytes_data_recv, Latency_us FROM stats_mysql_connection_pool;"
 const QueryConnectionPoolReset = "SELECT * FROM stats_mysql_connection_pool_reset;"
 
-type ConnectionPool struct {
+type Stats struct {
 	Connection      *mysql.Connection `db:"-"`
 	HostgroupID     uint8             `db:"hostgroup"`
 	Hostname        string            `db:"srv_host"`
@@ -30,8 +26,8 @@ type ConnectionPool struct {
 	Latency         uint64            `db:"Latency_us"`
 }
 
-func (p *ConnectionPool) Fetcher() error {
-	return p.Connection.Instance.QueryRow(QueryConnectionPool).Scan(
+func (p *Stats) Fetcher() error {
+	return p.Connection.Instance.QueryRow(p.QuerySelect()).Scan(
 		&p.HostgroupID,
 		&p.Hostname,
 		&p.Port,
@@ -48,6 +44,15 @@ func (p *ConnectionPool) Fetcher() error {
 		&p.Latency)
 }
 
-func (p *ConnectionPool) Reset() {
+func (p *Stats) QuerySelect() string {
+	return fmt.Sprintf(
+		"SELECT hostgroup, srv_host, srv_port, status, ConnUsed, ConnFree, ConnOK, ConnERR, MaxConnUsed, Queries, Queries_GTID_sync, Bytes_data_sent, Bytes_data_recv, Latency_us " +
+		"FROM stats_mysql_connection_pool WHERE hostgroup = %d AND srv_host = '%s' LIMIT 1;",
+		p.HostgroupID,
+		p.Hostname,
+	)
+}
+
+func (p *Stats) Reset() {
 	p.Connection.Query(QueryConnectionPoolReset)
 }

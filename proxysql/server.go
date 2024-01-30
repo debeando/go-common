@@ -15,6 +15,7 @@ type Server struct {
 	Port              uint16            `yaml:"port"`
 	Status            string            `yaml:"status"`
 	Weight            uint16            `yaml:"weight"`
+	Stats             Stats
 }
 
 func (s *Server) Insert() error {

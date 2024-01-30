@@ -89,6 +89,4 @@ func TestLink(t *testing.T) {
 	assert.Equal(t, z.Servers.Count(), 2)
 	assert.NotEmpty(t, z.Connection, nil)
 	assert.NotEmpty(t, z.Servers.First(), nil)
-	assert.NotEmpty(t, z.Stats.Connection, nil)
-	assert.NotEmpty(t, z.Stats.ConnectionPool.Connection, nil)
 }

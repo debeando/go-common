@@ -46,8 +46,8 @@ func (p *Stats) Fetcher() error {
 
 func (p *Stats) QuerySelect() string {
 	return fmt.Sprintf(
-		"SELECT hostgroup, srv_host, srv_port, status, ConnUsed, ConnFree, ConnOK, ConnERR, MaxConnUsed, Queries, Queries_GTID_sync, Bytes_data_sent, Bytes_data_recv, Latency_us " +
-		"FROM stats_mysql_connection_pool WHERE hostgroup = %d AND srv_host = '%s' LIMIT 1;",
+		"SELECT hostgroup, srv_host, srv_port, status, ConnUsed, ConnFree, ConnOK, ConnERR, MaxConnUsed, Queries, Queries_GTID_sync, Bytes_data_sent, Bytes_data_recv, Latency_us "+
+			"FROM stats_mysql_connection_pool WHERE hostgroup = %d AND srv_host = '%s' LIMIT 1;",
 		p.HostgroupID,
 		p.Hostname,
 	)

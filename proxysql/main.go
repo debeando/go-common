@@ -26,5 +26,6 @@ func (p *ProxySQL) AddServer(s Server) {
 func (p *ProxySQL) Link() {
 	for i, _ := range p.Servers {
 		p.Servers[i].Connection = p.Connection
+		p.Servers[i].Stats.Connection = p.Connection
 	}
 }

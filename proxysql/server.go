@@ -37,7 +37,7 @@ func (s *Server) Update() error {
 }
 
 func (s *Server) Fetcher() error {
-	return s.Connection.Instance.QueryRow(s.QuerySelect()).Scan(
+	err := s.Connection.Instance.QueryRow(s.QuerySelect()).Scan(
 		&s.HostgroupID,
 		&s.Hostname,
 		&s.Port,
@@ -45,6 +45,13 @@ func (s *Server) Fetcher() error {
 		&s.Weight,
 		&s.MaxConnections,
 		&s.MaxReplicationLag)
+
+	// c.ProxySQL.Servers.First().Stats.Connection = c.ProxySQL.Connection
+	// c.ProxySQL.Servers.First().Stats.HostgroupID = c.ProxySQL.Servers.First().HostgroupID
+	// c.ProxySQL.Servers.First().Stats.Hostname = c.AWS.RDS.Replica.Instance.Endpoint
+	// c.ProxySQL.Servers.First().Stats.Fetcher()
+
+	return err
 }
 
 func (s *Server) Delete() error {
@@ -54,6 +61,10 @@ func (s *Server) Delete() error {
 	}
 
 	return nil
+}
+
+func (s *Server) IsOnLine() bool {
+	return s.Status == ONLINE && s.Stats.Status == ONLINE
 }
 
 func (s *Server) QueryInsert() string {

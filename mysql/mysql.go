@@ -5,13 +5,15 @@ import (
 )
 
 type MySQL struct {
-	Host     string `json:"host" yaml:"host"`
-	Port     uint16 `json:"port" yaml:"port"`
-	Username string `json:"username" yaml:"username"`
-	Password string `json:"password" yaml:"password"`
-	Schema   string `json:"schema" yaml:"schema"`
-	Status   string `json:"status" yaml:"status"`
-	Timeout  uint8  `json:"timeout" yaml:"timeout"`
+	Connection *Connection
+	Host       string `json:"host" yaml:"host"`
+	Name       string `json:"name" yaml:"name"`
+	Password   string `json:"password" yaml:"password"`
+	Port       uint16 `json:"port" yaml:"port"`
+	Schema     string `json:"schema" yaml:"schema"`
+	Status     string `json:"status" yaml:"status"`
+	Timeout    uint8  `json:"timeout" yaml:"timeout"`
+	Username   string `json:"username" yaml:"username"`
 }
 
 func (m *MySQL) DSN() string {

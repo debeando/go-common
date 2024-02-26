@@ -1,6 +1,6 @@
 # go-common
 
-Golang library for common projects on DeBeAndo.
+Golang library for common projects on DeBeAndo. When the module is mature or complex, is exported to other repository.
 
 ## Usage
 

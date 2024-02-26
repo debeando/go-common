@@ -73,7 +73,7 @@ func (r *RDS) Logs(identifier, filename string) (Logs, error) {
 		return Logs{}, err
 	}
 
-	return *logs.New(result), nil
+	return *logs.Decode(result), nil
 }
 
 func (r *RDS) PollLogs(identifier, filename string) (string, error) {
@@ -147,7 +147,7 @@ func (r *RDS) CreateReplica(instance Instance) error {
 		DeletionProtection:              aws.Bool(false),
 		EnableCustomerOwnedIp:           aws.Bool(false),
 		EnableIAMDatabaseAuthentication: aws.Bool(false),
-		EnablePerformanceInsights:       aws.Bool(false),
+		EnablePerformanceInsights:       aws.Bool(true),
 		MultiAZ:                         aws.Bool(false),
 		PubliclyAccessible:              aws.Bool(false),
 		SourceDBInstanceIdentifier:      aws.String(instance.Identifier),

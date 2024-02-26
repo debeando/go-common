@@ -22,6 +22,8 @@ func (r *Rows) SortBy(i int) {
 		switch t.Name() {
 		case "int":
 			return int(v1.Int()) < int(v2.Int())
+		case "int64":
+			return int64(v1.Int()) < int64(v2.Int())
 		case "float64":
 			return v1.Float() < v2.Float()
 		case "string":

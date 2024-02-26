@@ -24,9 +24,8 @@ func New(name, dsn string) *Connection {
 			Name: name,
 			DSN:  dsn,
 		}
-		instance[name].Name = name
 	}
-	return instance[name]
+	return Get(name)
 }
 
 func Get(name string) *Connection {

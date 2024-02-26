@@ -15,9 +15,13 @@ type Log struct {
 	Size        int64 // In bytes, file with 75396 bytes is empty.
 }
 
-func (l *Logs) New(input *rds.DescribeDBLogFilesOutput) *Logs {
+func NewLogs() Logs {
+	return Logs{}
+}
+
+func (l *Logs) Decode(input *rds.DescribeDBLogFilesOutput) *Logs {
 	for _, log := range input.DescribeDBLogFiles {
-		*l = append(*l, Log{
+		l.Add(Log{
 			LastWritten: aws.Int64Value(log.LastWritten),
 			FileName:    aws.StringValue(log.LogFileName),
 			Size:        aws.Int64Value(log.Size),
@@ -25,6 +29,10 @@ func (l *Logs) New(input *rds.DescribeDBLogFilesOutput) *Logs {
 	}
 
 	return l
+}
+
+func (l *Logs) Add(in Log) {
+	*l = append(*l, in)
 }
 
 // Len is part of sort.Interface.

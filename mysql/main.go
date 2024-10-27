@@ -1,7 +1,6 @@
 package mysql
 
 import (
-	"bytes"
 	"database/sql"
 	"errors"
 
@@ -116,11 +115,11 @@ func (c *Connection) FetchBool(query string) bool {
 		return false
 	}
 
-	if bytes.Equal(r.([]byte), []byte{48}) {
+	if r == int64(0) {
 		return false
 	}
 
-	if bytes.Equal(r.([]byte), []byte{49}) {
+	if r == int64(1) {
 		return true
 	}
 
